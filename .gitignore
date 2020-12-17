@@ -1,3 +1,4 @@
+# Haskell stuff
 dist
 dist-*
 cabal-dev
@@ -21,3 +22,9 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
+
+  
+# elm-package generated files
+elm-stuff/
+# elm-repl generated files
+repl-temp-*
