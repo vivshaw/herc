@@ -1,17 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Lib
-    ( serve
-    ) where
+module Application (app) where
 
+import API
 import Web.Scotty
 import Network.HTTP.Types.Status (status404)
+import Control.Monad.IO.Class
 
-serve :: IO ()
-serve = scotty 3000 $ do
-    get "/api" $ do
-        html "<h1>herc api is up</h1>"
-    get "/graphql-playground" $ do
+app :: IO ()
+app = scotty 3000 $ do
+    post "/graphql" $ do
+        raw =<< (liftIO . api =<< body)
+    get "/graphql" $ do
         setHeader "Content-Type" "text/html; charset=utf-8"
         file "src/views/graphql-playground.html"
     notFound $ do

@@ -23,6 +23,9 @@ dependencies:
 - base >= 4.7 && < 5
 - scotty
 - http-types
+- morpheus-graphql
+- bytestring
+- text
 
 library:
   source-dirs: src

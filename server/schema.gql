@@ -1,0 +1,9 @@
+type Query {
+  message(content: String! = "Test Message"): Message!
+  messages(): [Message!]!
+}
+
+type Message {
+  content: String!
+  author: String!
+}
