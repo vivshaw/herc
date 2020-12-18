@@ -9,8 +9,17 @@ import Control.Monad.IO.Class
 
 app :: IO ()
 app = scotty 3000 $ do
+    options "/graphql" $ do
+        addHeader "Access-Control-Allow-Origin" ""
+        addHeader "Access-Control-Allow-Methods" "POST"
+        addHeader "Access-Control-Allow-Headers" "content-type"
+        addHeader "Access-Control-Allow-Credentials" "true" 
     post "/graphql" $ do
         setHeader "Content-Type" "application/json; charset=utf-8"
+        setHeader "Access-Control-Allow-Origin" "*"
+        addHeader "Access-Control-Allow-Methods" "POST"
+        addHeader "Access-Control-Allow-Credentials" "true"
+        addHeader "Access-Control-Allow-Headers" "content-type"
         raw =<< (liftIO . api =<< body)
     get "/graphql" $ do
         setHeader "Content-Type" "text/html; charset=utf-8"
