@@ -1,10 +1,10 @@
 name:                server
 version:             0.1.0.0
-github:              "githubuser/server"
-license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+github:              "vivshaw/herc"
+license:             MIT
+author:              "Hannah Vivian Shaw"
+maintainer:          "hvivianshaw@gmail.com"
+copyright:           "2020 vivshaw"
 
 extra-source-files:
 - README.md

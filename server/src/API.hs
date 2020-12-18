@@ -13,8 +13,7 @@ module API (api) where
 
 import Data.ByteString.Lazy.Char8 (ByteString)
 import Data.Morpheus (interpreter)
-import Data.Morpheus.Types (RootResolver (..), Undefined (..), IORes)
-import Data.Text (Text)
+import Data.Morpheus.Types (RootResolver (..), Undefined (..))
 import Schema.Query (Query, resolveQuery)
 
 rootResolver :: RootResolver IO () Query Undefined Undefined

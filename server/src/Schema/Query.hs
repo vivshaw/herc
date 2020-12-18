@@ -11,10 +11,8 @@
 
 module Schema.Query (resolveQuery, Query) where
 
-import Data.ByteString.Lazy.Char8 (ByteString)
-import Data.Morpheus (interpreter)
 import Data.Morpheus.Document (importGQLDocument)
-import Data.Morpheus.Types (RootResolver (..), Undefined (..), IORes)
+import Data.Morpheus.Types (IORes)
 import Data.Text (Text)
 
 importGQLDocument "schema.gql"
