@@ -1,0 +1,21 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "@dillonkearns/elm-graphql": "^4.0.5"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "start": "node scripts/start.js",
+    "make": "elm make",
+    "repl": "elm repl",
+    "reactor": "elm reactor",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-elm-types": "elm-graphql http://127.0.0.1:3000/graphql --base ChatAPI"
+  },
+  "author": "",
+  "license": "ISC"
+}
