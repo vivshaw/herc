@@ -104,21 +104,13 @@ instance Yesod App where
 
         muser <- maybeAuthPair
         mcurrentRoute <- getCurrentRoute
-
-        -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
-        (title, parents) <- breadcrumbs
-
+        
         -- Define the menu items of the header.
         let menuItems =
                 [ NavbarLeft $ MenuItem
                     { menuItemLabel = "Home"
                     , menuItemRoute = HomeR
                     , menuItemAccessCallback = True
-                    }
-                , NavbarLeft $ MenuItem
-                    { menuItemLabel = "Profile"
-                    , menuItemRoute = ProfileR
-                    , menuItemAccessCallback = isJust muser
                     }
                 , NavbarRight $ MenuItem
                     { menuItemLabel = "Login"
@@ -168,10 +160,6 @@ instance Yesod App where
     isAuthorized (StaticR _) _ = return Authorized
     isAuthorized GraphqlR _ = return Authorized
 
-    -- the profile route requires that the user is authenticated, so we
-    -- delegate to that function
-    isAuthorized ProfileR _ = isAuthenticated
-
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
@@ -207,19 +195,6 @@ instance Yesod App where
 
     makeLogger :: App -> IO Logger
     makeLogger = return . appLogger
-
--- Define breadcrumbs.
-instance YesodBreadcrumbs App where
-    -- Takes the route that the user is currently on, and returns a tuple
-    -- of the 'Text' that you want the label to display, and a previous
-    -- breadcrumb route.
-    breadcrumb
-        :: Route App  -- ^ The route the user is visiting currently.
-        -> Handler (Text, Maybe (Route App))
-    breadcrumb HomeR = return ("Home", Nothing)
-    breadcrumb (AuthR _) = return ("Login", Just HomeR)
-    breadcrumb ProfileR = return ("Profile", Just HomeR)
-    breadcrumb  _ = return ("home", Nothing)
 
 -- How to run database actions.
 instance YesodPersist App where

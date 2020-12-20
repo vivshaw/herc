@@ -11,6 +11,4 @@
 
 /comments CommentR POST
 
-/profile ProfileR GET
-
 /graphql GraphqlR GET POST

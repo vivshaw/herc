@@ -12,7 +12,6 @@ module Layout where
 
 import Import
 import Text.Hamlet          (hamletFile)
-import Text.Cassius         (cassiusFileReload)
 
 graphqlLayout :: Widget -> Handler Html
 graphqlLayout widget = do
