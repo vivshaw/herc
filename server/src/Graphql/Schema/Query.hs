@@ -9,7 +9,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Schema.Query (resolveQuery, Query) where
+module Graphql.Schema.Query (resolveQuery, Query) where
 
 import Data.Morpheus.Document (importGQLDocument)
 import Data.Morpheus.Types (IORes)

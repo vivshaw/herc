@@ -9,12 +9,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module API (api) where
+module Graphql.API (graphqlApi) where
 
-import Data.ByteString.Lazy.Char8 (ByteString)
-import Data.Morpheus (interpreter)
-import Data.Morpheus.Types (RootResolver (..), Undefined (..))
-import Schema.Query (Query, resolveQuery)
+import Data.Morpheus
+  ( 
+    interpreter
+  )
+import Data.Morpheus.Types (RootResolver (..), Undefined (..), GQLRequest, GQLResponse)
+import Graphql.Schema.Query (Query, resolveQuery)
 
 rootResolver :: RootResolver IO () Query Undefined Undefined
 rootResolver =
@@ -24,5 +26,5 @@ rootResolver =
       subscriptionResolver = Undefined
     }
 
-api :: ByteString -> IO ByteString
-api = interpreter rootResolver
+graphqlApi :: GQLRequest -> IO GQLResponse
+graphqlApi = interpreter rootResolver

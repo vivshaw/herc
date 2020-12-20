@@ -1,6 +1,5 @@
-module Main where
-
-import Application
+import Prelude     (IO)
+import Application (appMain)
 
 main :: IO ()
-main = app
+main = appMain
