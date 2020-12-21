@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE FlexibleContexts #-} 
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -18,7 +18,7 @@ import Data.Text (Text)
 importGQLDocument "schema.gql"
 
 resolveQuery :: Query (IORes ())
-resolveQuery = Query { message, messages }
+resolveQuery = Query {message, messages}
   where
     message MessageArgs {content} =
       pure
@@ -28,15 +28,12 @@ resolveQuery = Query { message, messages }
           }
     messages =
       pure
-        [
-          Message
-            {
-              content = pure "Message 1",
+        [ Message
+            { content = pure "Message 1",
               author = pure "Default Author"
             },
-            Message
-            {
-              content = pure "Message 2",
+          Message
+            { content = pure "Message 2",
               author = pure "Default Author"
             }
         ]

@@ -1,21 +1,16 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Graphql.API (graphqlApi) where
 
 import Data.Morpheus
-  ( 
-    interpreter
+  ( interpreter,
   )
-import Data.Morpheus.Types (RootResolver (..), Undefined (..), GQLRequest, GQLResponse)
+import Data.Morpheus.Types (GQLRequest, GQLResponse, RootResolver (..), Undefined (..))
 import Graphql.Schema.Query (Query, resolveQuery)
 
 rootResolver :: RootResolver IO () Query Undefined Undefined

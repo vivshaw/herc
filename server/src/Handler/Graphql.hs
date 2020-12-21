@@ -1,20 +1,20 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Handler.Graphql where
 
-import Import
-import Graphql.API
-import Layout (graphqlLayout)
 import Data.Morpheus.Types (GQLRequest)
+import Graphql.API
+import Import
+import Layout (graphqlLayout)
 
 getGraphqlR :: Handler Html
 getGraphqlR = do
-    graphqlLayout [whamlet|You made it to graphql!|]
+  graphqlLayout ([whamlet|Empty Widget|])
 
 postGraphqlR :: Handler Value
 postGraphqlR = do
