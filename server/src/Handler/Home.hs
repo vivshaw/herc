@@ -1,8 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Handler.Home where
 
 import Import
@@ -16,8 +17,8 @@ import Import
 -- inclined, or create a single monolithic file.
 getHomeR :: Handler Html
 getHomeR = defaultLayout $ do
-    setTitle "Welcome To Yesod!"
-    $(widgetFile "homepage")
+  setTitle "Welcome To Yesod!"
+  $(widgetFile "homepage")
 
-getAllComments :: DB [Entity Comment]
-getAllComments = selectList [] [Asc CommentId]
+getAllComments :: DB [Entity Message]
+getAllComments = selectList [] [Asc MessageId]

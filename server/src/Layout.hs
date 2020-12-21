@@ -1,20 +1,19 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE ExplicitForAll #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Layout where
 
 import Import
-import Text.Hamlet          (hamletFile)
+import Text.Hamlet (hamletFile)
 
 graphqlLayout :: Widget -> Handler Html
-graphqlLayout widget = do
-    pc <- widgetToPageContent $ do
-        $(widgetFile "graphql/graphql-layout")
-    withUrlRenderer $(hamletFile "templates/graphql/graphql-layout-wrapper.hamlet")
+graphqlLayout _ = do
+  pc <- widgetToPageContent $ do
+    $(widgetFile "graphql/graphql-layout")
+  withUrlRenderer $(hamletFile "templates/graphql/graphql-layout-wrapper.hamlet")
