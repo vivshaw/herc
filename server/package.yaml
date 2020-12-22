@@ -43,6 +43,8 @@ dependencies:
 - wai
 - foreign-store
 - morpheus-graphql
+- morpheus-graphql-subscriptions
+- mtl
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
@@ -64,7 +66,7 @@ library:
 
 # Runnable executable for our application
 executables:
-  my-project:
+  herc-server:
     main: main.hs
     source-dirs: app
     ghc-options:
@@ -72,7 +74,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - my-project
+    - herc-server
     when:
     - condition: flag(library-only)
       buildable: false
@@ -84,7 +86,7 @@ tests:
     source-dirs: test
     ghc-options: -Wall
     dependencies:
-    - my-project
+    - herc-server
     - hspec >=2.0.0
     - yesod-test
     - microlens

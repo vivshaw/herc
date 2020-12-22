@@ -1,9 +1,16 @@
-type Query {
-  message(content: String! = "Test Message"): Message!
-  messages(): [Message!]!
-}
-
 type Message {
   content: String!
   author: String!
+}
+
+type Query {
+  messages(): [Message!]!
+}
+
+type Mutation {
+  sendMessage(content: String!, author: String!): Message!
+}
+
+type Subscription {
+  messageSent: Message!
 }

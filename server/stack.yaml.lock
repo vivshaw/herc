@@ -18,10 +18,16 @@ packages:
       sha256: 9fac04b18ac5c29b0e1f74a92046b2d8f49c80fcc09df542562eb88b3ad48df2
   original:
     hackage: morpheus-graphql-core-0.16.0
+- completed:
+    hackage: morpheus-graphql-subscriptions-0.16.0@sha256:05b8589560d0b0d1030c3c9c92b3c18872ed6bdba5d29a067fefbb38e1ee4496,2456
+    pantry-tree:
+      size: 864
+      sha256: 9b814eb8391a04d053efcde3e813f9ca46de066602b9c134ded28b6b85aca7ca
+  original:
+    hackage: morpheus-graphql-subscriptions-0.16.0
 snapshots:
 - completed:
     size: 533252
     url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/26.yaml
     sha256: cdbc5db9c1afe80a5998247939027a0c7db92fa0f20b5cd01596ec3da628b622
-  original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/26.yaml
+  original: lts-16.26
