@@ -18,14 +18,8 @@ import Data.Text (Text)
 importGQLDocument "schema.gql"
 
 resolveQuery :: Query (IORes ())
-resolveQuery = Query {message, messages}
+resolveQuery = Query {messages}
   where
-    message MessageArgs {content} =
-      pure
-        Message
-          { content = pure content,
-            author = pure "Default Author"
-          }
     messages =
       pure
         [ Message

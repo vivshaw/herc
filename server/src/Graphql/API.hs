@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -9,26 +10,59 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Graphql.API (graphqlApi) where
-
-import Data.Morpheus
-  ( interpreter,
+module Graphql.API
+  ( morpheusApp,
+    APIEvent,
   )
-import Data.Morpheus.Document (importGQLDocument)
+where
+
+import Control.Monad.Except
+import Control.Monad.Reader
+import Data.Morpheus
+  ( App,
+    deriveApp,
+    runApp,
+  )
+import Data.Morpheus.Document (RootResolverConstraint, importGQLDocument)
 import Data.Morpheus.Subscriptions
   ( Event (..),
+    Hashable,
   )
-import Data.Morpheus.Types (GQLRequest, GQLResponse, IORes, MUTATION, Resolver, ResolverM, ResolverS, RootResolver (..), SubscriptionField, Undefined (..), lift, publish, subscribe)
+import Data.Morpheus.Types
+  ( GQLRequest,
+    GQLResponse,
+    MUTATION,
+    Resolver,
+    ResolverM,
+    ResolverS,
+    RootResolver (..),
+    SubscriptionField,
+    lift,
+    publish,
+    subscribe,
+  )
 import Data.Text (Text)
+import GHC.Generics (Generic)
 
-data Channel = MessageChannel
+data Channel
+  = ChannelA
+  | ChannelB
+  deriving
+    ( Show,
+      Eq,
+      Ord,
+      Generic,
+      Hashable
+    )
 
-newtype Content = Content {contentID :: Int}
+data Content
+  = ContentA Int
+  | ContentB Text
 
 type APIEvent = Event Channel Content
 
 messageEvent :: APIEvent
-messageEvent = Event [MessageChannel] (Content {contentID = 1})
+messageEvent = Event [ChannelA] (ContentA 1)
 
 importGQLDocument "schema.gql"
 
@@ -54,10 +88,13 @@ rootResolver =
     sendMessage :: SendMessageArgs -> ResolverM APIEvent IO Message
     sendMessage SendMessageArgs {content, author} = do
       publish [messageEvent]
+      liftIO $ putStrLn "Send Message"
       lift setDBAddress
     messageSent :: SubscriptionField (ResolverS APIEvent IO Message)
-    messageSent = subscribe MessageChannel $ do
+    messageSent = subscribe ChannelA $ do
+      liftIO $ putStrLn "Init message subscription"
       pure $ \(Event _ content) -> do
+        liftIO $ putStrLn "MessageSent"
         pure
           Message
             { content = pure "Message 1",
@@ -72,5 +109,5 @@ setDBAddress = do
         author = pure "New Author"
       }
 
-graphqlApi :: GQLRequest -> IO GQLResponse
-graphqlApi = interpreter rootResolver
+morpheusApp :: App APIEvent IO
+morpheusApp = deriveApp rootResolver

@@ -11,9 +11,14 @@ module Foundation where
 
 import Control.Monad.Logger (LogSource)
 import qualified Data.CaseInsensitive as CI
+import Data.Morpheus.Types (GQLRequest, GQLResponse)
 import qualified Data.Text.Encoding as TE
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
+import Graphql.API (APIEvent)
 import Import.NoFoundation
+import Network.WebSockets
+  ( ServerApp,
+  )
 import Text.Hamlet (hamletFile)
 import Text.Jasmine (minifym)
 import Yesod.Core.Types (Logger)
@@ -31,7 +36,13 @@ data App = App
     -- | Database connection pool.
     appConnPool :: ConnectionPool,
     appHttpManager :: Manager,
-    appLogger :: Logger
+    appLogger :: Logger,
+    -- | Morpheus GraphQL WebSockets app
+    wsApp :: ServerApp,
+    -- | Morpheus GraphQL publish channel
+    publish :: APIEvent -> IO (),
+    -- | Morpheus GraphQL API
+    graphqlApi :: GQLRequest -> IO GQLResponse
   }
 
 data MenuItem = MenuItem
