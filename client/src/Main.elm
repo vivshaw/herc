@@ -10,9 +10,11 @@ import Graphql.Document as Document
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Html exposing (Html, a, div, h1, pre, span, text)
-import Html.Attributes exposing (class)
+import Heroicons.Solid exposing (heart, userCircle)
+import Html exposing (Html, a, div, h1, pre, span, strong, text, textarea)
+import Html.Attributes exposing (class, placeholder)
 import RemoteData exposing (RemoteData)
+import Svg.Attributes
 
 
 
@@ -76,25 +78,15 @@ view : Model -> Html.Html Msg
 view model =
     div []
         [ div [ class "flex flex-row h-screen" ]
-            [ div [ class "flex flex-col justify-between items-center w-16 p-3" ]
-                [ div [ class "flex flex-col space-y-3" ]
-                    [ div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    ]
-                , div [ class "flex flex-col space-y-3" ]
-                    [ div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
-                    ]
-                ]
-            , div [ class "flex-auto flex flex-row justify-around bg-blue-200" ]
+            [ leftMenu
+            , div [ class "flex-auto flex flex-row justify-around" ]
                 [ div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col" ]
-                    [ div [ class "flex-none h-16 bg-red-200" ] []
-                    , div [ class "flex-auto overflow-y-auto bg-blue-200" ] []
-                    , div [ class "flex-none h-64 bg-green-200" ] []
+                    [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5" ]
+                        [ div [ class "" ] [ strong [] [ Html.text "User" ] ]
+                        , div [ class "" ] [ heart [ Svg.Attributes.class "w-6 h-6 flex-none" ] ]
+                        ]
+                    , div [ class "flex-auto overflow-y-auto p-5" ] [ otherComment "Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi Hi " "vivshaw", otherComment "Hello" "vivshaw", otherComment "Howdy" "vivshaw" ]
+                    , div [ class "flex-none h-40 p-5" ] [ textarea [ class "shadow-md w-full h-full outline-none border hover:border-blue-400 focus:border-blue-400 rounded p-3", placeholder "Hi" ] [] ]
                     ]
                 ]
             ]
@@ -105,6 +97,35 @@ view model =
         , div []
             [ h1 [] [ text "Response" ]
             , Html.text (Debug.toString model)
+            ]
+        ]
+
+
+leftMenu : Html.Html Msg
+leftMenu =
+    div [ class "flex flex-col justify-between items-center w-16 p-3" ]
+        [ div [ class "flex flex-col space-y-3" ]
+            [ div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            ]
+        , div [ class "flex flex-col space-y-3" ]
+            [ div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            , div [ class "w-8 h-8 bg-gray-200 rounded-full" ] []
+            ]
+        ]
+
+
+otherComment : String -> String -> Html.Html Msg
+otherComment content user =
+    div [ class "flex flex-row space-x-2" ]
+        [ userCircle [ Svg.Attributes.class "w-6 h-6 flex-none" ]
+        , div [ class "flex flex-col" ]
+            [ div [ class "bg-gray-200 rounded p-5" ] [ Html.text content ]
+            , div [ class "text-sm text-gray-500" ] [ Html.text user ]
             ]
         ]
 
