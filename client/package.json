@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "autoprefixer": "^10.2.1",
+    "postcss": "^8.2.3",
+    "tailwindcss": "^2.0.2"
+  },
   "devDependencies": {
     "@dillonkearns/elm-graphql": "^4.0.5",
     "elm": "^0.19.1-3",
-    "elm-live": "^4.0.2"
+    "elm-live": "^4.0.2",
+    "postcss-cli": "^8.3.1"
   },
   "scripts": {
     "build": "node scripts/build.js",
@@ -17,7 +22,8 @@
     "reactor": "elm reactor",
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate-elm-types": "elm-graphql http://127.0.0.1:3000/graphql --base ChatAPI",
-    "elm-live": "elm-live src/Main.elm"
+    "elm-live": "elm-live src/Main.elm -- --output=main.js",
+    "build:styles": "postcss src/styles/styles.css -o compiled.css"
   },
   "author": "",
   "license": "ISC"
