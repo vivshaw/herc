@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module ChatAPI.Query exposing (..)
+module ChatAPI.Subscription exposing (..)
 
 import ChatAPI.InputObject
 import ChatAPI.Interface
@@ -19,8 +19,8 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode exposing (Decoder)
 
 
-messages :
+messageSent :
     SelectionSet decodesTo ChatAPI.Object.Message
-    -> SelectionSet (List decodesTo) RootQuery
-messages object_ =
-    Object.selectionForCompositeField "messages" [] object_ (identity >> Decode.list)
+    -> SelectionSet decodesTo RootSubscription
+messageSent object_ =
+    Object.selectionForCompositeField "messageSent" [] object_ identity

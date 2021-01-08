@@ -5512,28 +5512,13 @@ var $krisajenkins$remotedata$RemoteData$fromResult = function (result) {
 		return $krisajenkins$remotedata$RemoteData$Success(x);
 	}
 };
-var $dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$Argument = F2(
-	function (a, b) {
-		return {$: 'Argument', a: a, b: b};
-	});
-var $dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$required = F3(
-	function (fieldName, raw, encode) {
-		return A2(
-			$dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$Argument,
-			fieldName,
-			encode(raw));
+var $author$project$Main$Message = F2(
+	function (content, author) {
+		return {author: author, content: content};
 	});
 var $dillonkearns$elm_graphql$Graphql$SelectionSet$SelectionSet = F2(
 	function (a, b) {
 		return {$: 'SelectionSet', a: a, b: b};
-	});
-var $dillonkearns$elm_graphql$Graphql$RawField$Composite = F3(
-	function (a, b, c) {
-		return {$: 'Composite', a: a, b: b, c: c};
-	});
-var $dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite = F3(
-	function (fieldName, args, fields) {
-		return A3($dillonkearns$elm_graphql$Graphql$RawField$Composite, fieldName, args, fields);
 	});
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$core$Maybe$map = F2(
@@ -5751,46 +5736,6 @@ var $dillonkearns$elm_graphql$Graphql$Document$Field$hashedAliasName = function 
 		$dillonkearns$elm_graphql$Graphql$RawField$name(field),
 		$dillonkearns$elm_graphql$Graphql$Document$Field$alias(field));
 };
-var $dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField = F4(
-	function (fieldName, args, _v0, decoderTransform) {
-		var fields = _v0.a;
-		var decoder = _v0.b;
-		return A2(
-			$dillonkearns$elm_graphql$Graphql$SelectionSet$SelectionSet,
-			_List_fromArray(
-				[
-					A3($dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite, fieldName, args, fields)
-				]),
-			A2(
-				$elm$json$Json$Decode$field,
-				$dillonkearns$elm_graphql$Graphql$Document$Field$hashedAliasName(
-					A3($dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite, fieldName, args, fields)),
-				decoderTransform(decoder)));
-	});
-var $dillonkearns$elm_graphql$Graphql$Internal$Encode$Json = function (a) {
-	return {$: 'Json', a: a};
-};
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $dillonkearns$elm_graphql$Graphql$Internal$Encode$string = function (value) {
-	return $dillonkearns$elm_graphql$Graphql$Internal$Encode$Json(
-		$elm$json$Json$Encode$string(value));
-};
-var $author$project$ChatAPI$Query$message = F2(
-	function (requiredArgs, object_) {
-		return A4(
-			$dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField,
-			'message',
-			_List_fromArray(
-				[
-					A3($dillonkearns$elm_graphql$Graphql$Internal$Builder$Argument$required, 'content', requiredArgs.content, $dillonkearns$elm_graphql$Graphql$Internal$Encode$string)
-				]),
-			object_,
-			$elm$core$Basics$identity);
-	});
-var $author$project$Main$Message = F2(
-	function (content, author) {
-		return {author: author, content: content};
-	});
 var $dillonkearns$elm_graphql$Graphql$RawField$Leaf = F2(
 	function (a, b) {
 		return {$: 'Leaf', a: a, b: b};
@@ -5829,10 +5774,40 @@ var $dillonkearns$elm_graphql$Graphql$SelectionSet$map2 = F3(
 			A3($elm$json$Json$Decode$map2, combine, selectionDecoder1, selectionDecoder2));
 	});
 var $author$project$Main$messageSelection = A3($dillonkearns$elm_graphql$Graphql$SelectionSet$map2, $author$project$Main$Message, $author$project$ChatAPI$Object$Message$content, $author$project$ChatAPI$Object$Message$author);
-var $author$project$Main$query = A2(
-	$author$project$ChatAPI$Query$message,
-	{content: '1001'},
-	$author$project$Main$messageSelection);
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $dillonkearns$elm_graphql$Graphql$RawField$Composite = F3(
+	function (a, b, c) {
+		return {$: 'Composite', a: a, b: b, c: c};
+	});
+var $dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite = F3(
+	function (fieldName, args, fields) {
+		return A3($dillonkearns$elm_graphql$Graphql$RawField$Composite, fieldName, args, fields);
+	});
+var $dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField = F4(
+	function (fieldName, args, _v0, decoderTransform) {
+		var fields = _v0.a;
+		var decoder = _v0.b;
+		return A2(
+			$dillonkearns$elm_graphql$Graphql$SelectionSet$SelectionSet,
+			_List_fromArray(
+				[
+					A3($dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite, fieldName, args, fields)
+				]),
+			A2(
+				$elm$json$Json$Decode$field,
+				$dillonkearns$elm_graphql$Graphql$Document$Field$hashedAliasName(
+					A3($dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$composite, fieldName, args, fields)),
+				decoderTransform(decoder)));
+	});
+var $author$project$ChatAPI$Query$messages = function (object_) {
+	return A4(
+		$dillonkearns$elm_graphql$Graphql$Internal$Builder$Object$selectionForCompositeField,
+		'messages',
+		_List_Nil,
+		object_,
+		A2($elm$core$Basics$composeR, $elm$core$Basics$identity, $elm$json$Json$Decode$list));
+};
+var $author$project$Main$query = $author$project$ChatAPI$Query$messages($author$project$Main$messageSelection);
 var $dillonkearns$elm_graphql$Graphql$Http$Query = F2(
 	function (a, b) {
 		return {$: 'Query', a: a, b: b};
@@ -6961,6 +6936,7 @@ var $dillonkearns$elm_graphql$Graphql$Document$serializeQueryWithOperationName =
 		var decoder_ = _v0.b;
 		return A3($dillonkearns$elm_graphql$Graphql$Document$serializeWithOperationName, 'query', operationName, fields);
 	});
+var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$url$Url$percentEncode = _Url_percentEncode;
 var $dillonkearns$elm_graphql$Graphql$Http$QueryParams$replace = F2(
 	function (old, _new) {
@@ -7092,7 +7068,6 @@ var $elm$json$Json$Decode$dict = function (decoder) {
 		$elm$core$Dict$fromList,
 		$elm$json$Json$Decode$keyValuePairs(decoder));
 };
-var $elm$json$Json$Decode$list = _Json_decodeList;
 var $dillonkearns$elm_graphql$Graphql$Http$GraphqlError$Location = F2(
 	function (line, column) {
 		return {column: column, line: line};

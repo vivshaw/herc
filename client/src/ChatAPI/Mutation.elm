@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module ChatAPI.Query exposing (..)
+module ChatAPI.Mutation exposing (..)
 
 import ChatAPI.InputObject
 import ChatAPI.Interface
@@ -19,8 +19,15 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode exposing (Decoder)
 
 
-messages :
-    SelectionSet decodesTo ChatAPI.Object.Message
-    -> SelectionSet (List decodesTo) RootQuery
-messages object_ =
-    Object.selectionForCompositeField "messages" [] object_ (identity >> Decode.list)
+type alias SendMessageRequiredArguments =
+    { content : String
+    , author : String
+    }
+
+
+sendMessage :
+    SendMessageRequiredArguments
+    -> SelectionSet decodesTo ChatAPI.Object.Message
+    -> SelectionSet decodesTo RootMutation
+sendMessage requiredArgs object_ =
+    Object.selectionForCompositeField "sendMessage" [ Argument.required "content" requiredArgs.content Encode.string, Argument.required "author" requiredArgs.author Encode.string ] object_ identity

@@ -20,7 +20,7 @@ import RemoteData exposing (RemoteData)
 
 
 type alias Response =
-    Message
+    List Message
 
 
 type alias Message =
@@ -29,9 +29,9 @@ type alias Message =
     }
 
 
-query : SelectionSet Message RootQuery
+query : SelectionSet (List Message) RootQuery
 query =
-    Query.message { content = "1001" } messageSelection
+    Query.messages messageSelection
 
 
 messageSelection : SelectionSet Message ChatAPI.Object.Message
