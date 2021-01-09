@@ -220,7 +220,17 @@ update msg model =
             )
 
         SentMessage message ->
-            ( model, Cmd.none )
+            case message of
+                Ok chatMessage ->
+                    case model.chatMessages of
+                        RemoteData.Success messages ->
+                            ( { model | chatMessages = RemoteData.Success (messages ++ [ chatMessage ]) }, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 main : Program Flags Model Msg
