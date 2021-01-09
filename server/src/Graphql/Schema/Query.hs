@@ -29,5 +29,9 @@ resolveQuery = Query {messages}
           Message
             { content = pure "Message 2",
               author = pure "Default Author"
+            },
+          Message
+            { content = pure "Message 3",
+              author = pure "Anonymous User"
             }
         ]

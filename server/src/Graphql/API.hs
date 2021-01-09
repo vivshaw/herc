@@ -58,6 +58,7 @@ data Channel
 data Content
   = ContentA Int
   | ContentB Text
+  | ContentC Text
 
 type APIEvent = Event Channel Content
 
@@ -83,6 +84,10 @@ rootResolver =
           Message
             { content = pure "Message 2",
               author = pure "Default Author"
+            },
+          Message
+            { content = pure "Message 3",
+              author = pure "Anonymous User"
             }
         ]
     sendMessage :: SendMessageArgs -> ResolverM APIEvent IO Message
