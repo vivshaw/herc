@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Browser
+import ChatAPI.Mutation as Mutation
 import ChatAPI.Object exposing (Message)
 import ChatAPI.Object.Message as Message exposing (author, content)
 import ChatAPI.Query as Query
@@ -8,11 +9,12 @@ import ChatAPI.Scalar
 import ChatAPI.ScalarCodecs
 import Graphql.Document as Document
 import Graphql.Http
-import Graphql.Operation exposing (RootQuery)
+import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Heroicons.Solid exposing (chat, heart, questionMarkCircle, userCircle)
-import Html exposing (Html, a, button, div, h1, pre, span, strong, text, textarea)
-import Html.Attributes exposing (class, classList, href, placeholder)
+import Html exposing (Html, a, button, div, input, text, textarea)
+import Html.Attributes exposing (class, classList, href, placeholder, size, type_, value)
+import Html.Events exposing (onClick, onInput)
 import RemoteData exposing (RemoteData, WebData)
 import Svg.Attributes
 
@@ -21,24 +23,29 @@ import Svg.Attributes
 -- GraphQL Setup
 
 
-type alias Response =
-    List Message
-
-
-type alias Message =
+type alias ChatMessage =
     { content : String
     , author : String
     }
 
 
-query : SelectionSet (List Message) RootQuery
+type alias Response =
+    List ChatMessage
+
+
+endpoint : String
+endpoint =
+    "http://127.0.0.1:3000/graphql"
+
+
+query : SelectionSet Response RootQuery
 query =
     Query.messages messageSelection
 
 
-messageSelection : SelectionSet Message ChatAPI.Object.Message
+messageSelection : SelectionSet ChatMessage ChatAPI.Object.Message
 messageSelection =
-    SelectionSet.map2 Message
+    SelectionSet.map2 ChatMessage
         Message.content
         Message.author
 
@@ -46,22 +53,37 @@ messageSelection =
 makeRequest : Cmd Msg
 makeRequest =
     query
-        |> Graphql.Http.queryRequest
-            "http://127.0.0.1:3000/graphql"
-        |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
+        |> Graphql.Http.queryRequest endpoint
+        |> Graphql.Http.send (RemoteData.fromResult >> GotChat)
+
+
+sendChatMessage : ChatMessage -> SelectionSet ChatMessage RootMutation
+sendChatMessage message =
+    Mutation.sendMessage message messageSelection
+
+
+doMutation : SelectionSet ChatMessage RootMutation -> Cmd Msg
+doMutation mutation =
+    mutation
+        |> Graphql.Http.mutationRequest endpoint
+        |> Graphql.Http.send SentMessage
 
 
 
--- Elm Architecture Setup
+-- Elm Architecture
 
 
 type Msg
-    = GotResponse (RemoteData (Graphql.Http.Error Response) Response)
+    = GotChat (RemoteData (Graphql.Http.Error Response) Response)
+    | SendMessage ChatMessage
+    | SentMessage (Result (Graphql.Http.Error ChatMessage) ChatMessage)
     | ChangeName String
+    | ChangeComment String
 
 
 type alias Model =
     { name : String
+    , currentComment : String
     , chatMessages : RemoteData (Graphql.Http.Error Response) Response
     }
 
@@ -73,6 +95,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { name = "Anonymous User"
+      , currentComment = ""
       , chatMessages = RemoteData.Loading
       }
     , makeRequest
@@ -85,10 +108,6 @@ view model =
         [ div [ class "flex flex-row h-screen" ]
             [ leftMenu
             , viewMain model
-            ]
-        , div []
-            [ h1 [] [ text "Response" ]
-            , Html.text (Debug.toString model)
             ]
         ]
 
@@ -114,11 +133,20 @@ viewMain model =
     div [ class "flex-auto flex flex-row justify-around" ]
         [ div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
             [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
-                [ div [ class "" ] [ strong [] [ text model.name ] ]
+                [ div [ class "" ]
+                    [ input
+                        [ value model.name
+                        , size (String.length model.name)
+                        , type_ "text"
+                        , class "flex-none outline-none font-semibold border-b-2 border-dashed"
+                        , onInput ChangeName
+                        ]
+                        []
+                    ]
                 , div [ class "" ] [ heart [ Svg.Attributes.class "w-6 h-6 flex-none" ] ]
                 ]
             , viewChat model
-            , sendCommentBox
+            , sendCommentBox model
             ]
         ]
 
@@ -139,7 +167,7 @@ viewChat model =
             div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] (List.map (comment model.name) chatMessages)
 
 
-comment : String -> Message -> Html.Html Msg
+comment : String -> ChatMessage -> Html.Html Msg
 comment name message =
     div
         [ classList
@@ -163,13 +191,13 @@ comment name message =
         ]
 
 
-sendCommentBox : Html.Html Msg
-sendCommentBox =
+sendCommentBox : Model -> Html.Html Msg
+sendCommentBox model =
     div [ class "flex-none h-50 p-5" ]
         [ div [ class "shadow-md bg-white w-full h-full border hover:border-green-400 focus:border-green-400 rounded p-3 flex flex-col items-start space-y-2" ]
             [ div [ class "font-semibold border-b-2 border-green-500 text-green-500 pb-1" ] [ text "Reply" ]
-            , textarea [ class "w-full h-full outline-none resize-none", placeholder "Type your reply here." ] []
-            , button [ class "self-end bg-green-400 hover:bg-green-600 text-white font-semibold py-1 px-1 rounded" ] [ text "Send" ]
+            , textarea [ class "w-full h-full outline-none resize-none", placeholder "Type your reply here.", value model.currentComment, onInput ChangeComment ] []
+            , button [ class "self-end bg-green-400 hover:bg-green-600 text-white font-semibold py-1 px-1 rounded", onClick (SendMessage { author = model.name, content = model.currentComment }) ] [ text "Send" ]
             ]
         ]
 
@@ -177,11 +205,22 @@ sendCommentBox =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotResponse response ->
+        GotChat response ->
             ( { model | chatMessages = response }, Cmd.none )
 
         ChangeName newName ->
             ( { model | name = newName }, Cmd.none )
+
+        ChangeComment newComment ->
+            ( { model | currentComment = newComment }, Cmd.none )
+
+        SendMessage message ->
+            ( { model | currentComment = "" }
+            , doMutation (sendChatMessage message)
+            )
+
+        SentMessage message ->
+            ( model, Cmd.none )
 
 
 main : Program Flags Model Msg
