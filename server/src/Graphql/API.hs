@@ -84,17 +84,13 @@ rootResolver =
           Message
             { content = pure "Message 2",
               author = pure "Default Author"
-            },
-          Message
-            { content = pure "Message 3",
-              author = pure "Anonymous User"
             }
         ]
     sendMessage :: SendMessageArgs -> ResolverM APIEvent IO Message
     sendMessage SendMessageArgs {content, author} = do
       publish [messageEvent]
       liftIO $ putStrLn "Send Message"
-      lift setDBAddress
+      lift (setDBAddress SendMessageArgs {content, author})
     messageSent :: SubscriptionField (ResolverS APIEvent IO Message)
     messageSent = subscribe ChannelA $ do
       liftIO $ putStrLn "Init message subscription"
@@ -106,12 +102,12 @@ rootResolver =
               author = pure "Default Author"
             }
 
-setDBAddress :: IO (Message (Resolver MUTATION APIEvent IO))
-setDBAddress = do
+setDBAddress :: SendMessageArgs -> IO (Message (Resolver MUTATION APIEvent IO))
+setDBAddress SendMessageArgs {content, author} = do
   pure
     Message
-      { content = pure "New Message",
-        author = pure "New Author"
+      { content = pure content,
+        author = pure author
       }
 
 morpheusApp :: App APIEvent IO
