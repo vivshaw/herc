@@ -52,6 +52,9 @@ import Network.Wai.Handler.Warp
     setOnException,
     setPort,
   )
+import Network.Wai.Handler.WebSockets
+  ( websocketsOr,
+  )
 import Network.Wai.Middleware.RequestLogger
   ( Destination (Logger),
     IPAddrSource (..),
@@ -59,6 +62,9 @@ import Network.Wai.Middleware.RequestLogger
     destination,
     mkRequestLogger,
     outputFormat,
+  )
+import Network.WebSockets
+  ( defaultConnectionOptions,
   )
 import System.Log.FastLogger
   ( defaultBufSize,
@@ -87,7 +93,7 @@ makeFoundation appSettings = do
       (appStaticDir appSettings)
 
   -- Initialize Morpheus GraphQL
-  (wsApp, publish) <- liftIO (webSocketsApp morpheusApp)
+  (wsApp, publish) <- webSocketsApp $ morpheusApp
   let graphqlApi = httpPubApp [publish] morpheusApp
 
   -- We need a log function to create a connection pool. We need a connection
@@ -122,7 +128,9 @@ makeApplication foundation = do
   logWare <- makeLogWare foundation
   -- Create the WAI application and apply middlewares
   appPlain <- toWaiAppPlain foundation
-  return $ logWare $ defaultMiddlewaresNoLogging $ allowCors appPlain
+  let socketApp = wsApp foundation
+  let yesodApp = logWare $ defaultMiddlewaresNoLogging $ allowCors appPlain
+  return $ websocketsOr defaultConnectionOptions socketApp yesodApp
 
 makeLogWare :: App -> IO Middleware
 makeLogWare foundation =
@@ -143,20 +151,21 @@ makeLogWare foundation =
 -- | Warp settings for the given foundation value.
 warpSettings :: App -> Settings
 warpSettings foundation =
-  setPort (appPort $ appSettings foundation) $
-    setHost (appHost $ appSettings foundation) $
-      setOnException
-        ( \_req e ->
-            when (defaultShouldDisplayException e) $
-              messageLoggerSource
-                foundation
-                (appLogger foundation)
-                $(qLocation >>= liftLoc)
-                "yesod"
-                LevelError
-                (toLogStr $ "Exception from Warp: " ++ show e)
-        )
-        defaultSettings
+  let settings = defaultSettings
+   in setPort (appPort $ appSettings foundation) $
+        setHost (appHost $ appSettings foundation) $
+          setOnException
+            ( \_req e ->
+                when (defaultShouldDisplayException e) $
+                  messageLoggerSource
+                    foundation
+                    (appLogger foundation)
+                    $(qLocation >>= liftLoc)
+                    "yesod"
+                    LevelError
+                    (toLogStr $ "Exception from Warp: " ++ show e)
+            )
+            settings
 
 -- | For yesod devel, return the Warp settings and WAI Application.
 getApplicationDev :: IO (Settings, Application)

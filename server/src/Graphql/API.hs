@@ -17,36 +17,32 @@ module Graphql.API
 where
 
 import Control.Monad.Except
-import Control.Monad.Reader
 import Data.Morpheus
   ( App,
     deriveApp,
-    runApp,
   )
-import Data.Morpheus.Document (RootResolverConstraint, importGQLDocument)
+import Data.Morpheus.Document (importGQLDocument)
 import Data.Morpheus.Subscriptions
   ( Event (..),
     Hashable,
   )
 import Data.Morpheus.Types
-  ( GQLRequest,
-    GQLResponse,
-    MUTATION,
+  ( MUTATION,
     Resolver,
     ResolverM,
     ResolverS,
     RootResolver (..),
     SubscriptionField,
-    lift,
     publish,
     subscribe,
   )
 import Data.Text (Text)
 import GHC.Generics (Generic)
 
+importGQLDocument "schema.gql"
+
 data Channel
-  = ChannelA
-  | ChannelB
+  = ChannelMessage
   deriving
     ( Show,
       Eq,
@@ -55,17 +51,12 @@ data Channel
       Hashable
     )
 
-data Content
-  = ContentA Int
-  | ContentB Text
-  | ContentC Text
+data Content = ContentMessage {msgContent :: Text, msgAuthor :: Text}
 
 type APIEvent = Event Channel Content
 
-messageEvent :: APIEvent
-messageEvent = Event [ChannelA] (ContentA 1)
-
-importGQLDocument "schema.gql"
+messageEvent :: Text -> Text -> APIEvent
+messageEvent content author = Event [ChannelMessage] (ContentMessage {msgContent = content, msgAuthor = author})
 
 rootResolver :: RootResolver IO APIEvent Query Mutation Subscription
 rootResolver =
@@ -88,18 +79,15 @@ rootResolver =
         ]
     sendMessage :: SendMessageArgs -> ResolverM APIEvent IO Message
     sendMessage SendMessageArgs {content, author} = do
-      publish [messageEvent]
-      liftIO $ putStrLn "Send Message"
+      publish [messageEvent content author]
       lift (setDBAddress SendMessageArgs {content, author})
     messageSent :: SubscriptionField (ResolverS APIEvent IO Message)
-    messageSent = subscribe ChannelA $ do
-      liftIO $ putStrLn "Init message subscription"
+    messageSent = subscribe ChannelMessage $ do
       pure $ \(Event _ content) -> do
-        liftIO $ putStrLn "MessageSent"
         pure
           Message
-            { content = pure "Message 1",
-              author = pure "Default Author"
+            { content = pure (msgContent content),
+              author = pure (msgAuthor content)
             }
 
 setDBAddress :: SendMessageArgs -> IO (Message (Resolver MUTATION APIEvent IO))

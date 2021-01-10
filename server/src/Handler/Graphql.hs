@@ -9,11 +9,9 @@
 
 module Handler.Graphql where
 
-import Control.Monad.Trans.Reader (ReaderT (ReaderT))
 import Data.Morpheus.Types (GQLRequest)
 import Import
 import Layout (graphqlLayout)
-import Yesod.WebSockets
 
 getGraphqlR :: Handler Html
 getGraphqlR = do
