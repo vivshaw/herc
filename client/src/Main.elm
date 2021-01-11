@@ -35,7 +35,7 @@ type alias Response =
 
 endpoint : String
 endpoint =
-    "http://127.0.0.1:3000/graphql"
+    "https://herc-graphql.herokuapp.com/graphql"
 
 
 query : SelectionSet Response RootQuery
