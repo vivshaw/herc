@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import ChatAPI.Mutation as Mutation
@@ -7,14 +7,16 @@ import ChatAPI.Object.Message as Message exposing (author, content)
 import ChatAPI.Query as Query
 import ChatAPI.Scalar
 import ChatAPI.ScalarCodecs
+import ChatAPI.Subscription as Subscription
 import Graphql.Document as Document
 import Graphql.Http
-import Graphql.Operation exposing (RootMutation, RootQuery)
+import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Heroicons.Solid exposing (chat, heart, questionMarkCircle, userCircle)
 import Html exposing (Html, a, button, div, input, text, textarea)
 import Html.Attributes exposing (class, classList, href, placeholder, size, type_, value)
 import Html.Events exposing (onClick, onInput)
+import Json.Decode
 import RemoteData exposing (RemoteData, WebData)
 import Svg.Attributes
 
@@ -69,6 +71,11 @@ doMutation mutation =
         |> Graphql.Http.send SentMessage
 
 
+subscriptionDocument : SelectionSet ChatMessage RootSubscription
+subscriptionDocument =
+    Subscription.messageSent messageSelection
+
+
 
 -- Elm Architecture
 
@@ -79,12 +86,20 @@ type Msg
     | SentMessage (Result (Graphql.Http.Error ChatMessage) ChatMessage)
     | ChangeName String
     | ChangeComment String
+    | NewSubscriptionStatus SubscriptionStatus ()
+    | MessageSubscriptionDataReceived Json.Decode.Value
+
+
+type SubscriptionStatus
+    = NotConnected
+    | Connected
 
 
 type alias Model =
     { name : String
     , currentComment : String
     , chatMessages : RemoteData (Graphql.Http.Error Response) Response
+    , subscriptionStatus : SubscriptionStatus
     }
 
 
@@ -97,8 +112,9 @@ init _ =
     ( { name = "Anonymous User"
       , currentComment = ""
       , chatMessages = RemoteData.Loading
+      , subscriptionStatus = NotConnected
       }
-    , makeRequest
+    , Cmd.batch [ makeRequest, createSubscriptionToMessages (subscriptionDocument |> Document.serializeSubscription) ]
     )
 
 
@@ -143,6 +159,12 @@ viewMain model =
                         ]
                         []
                     ]
+                , case model.subscriptionStatus of
+                    NotConnected ->
+                        div [ class "" ] [ text "Connecting..." ]
+
+                    Connected ->
+                        div [ class "" ] [ text "Connected!" ]
                 , div [ class "" ] [ heart [ Svg.Attributes.class "w-6 h-6 flex-none" ] ]
                 ]
             , viewChat model
@@ -222,6 +244,17 @@ update msg model =
         SentMessage message ->
             case message of
                 Ok chatMessage ->
+                    ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        NewSubscriptionStatus newStatus () ->
+            ( { model | subscriptionStatus = newStatus }, Cmd.none )
+
+        MessageSubscriptionDataReceived newData ->
+            case Json.Decode.decodeValue (subscriptionDocument |> Document.decoder) newData of
+                Ok chatMessage ->
                     case model.chatMessages of
                         RemoteData.Success messages ->
                             ( { model | chatMessages = RemoteData.Success (messages ++ [ chatMessage ]) }, Cmd.none )
@@ -229,8 +262,16 @@ update msg model =
                         _ ->
                             ( model, Cmd.none )
 
-                _ ->
+                Err error ->
                     ( model, Cmd.none )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ gotMessageSubscriptionData MessageSubscriptionDataReceived
+        , socketStatusConnected (NewSubscriptionStatus Connected)
+        ]
 
 
 main : Program Flags Model Msg
@@ -238,6 +279,15 @@ main =
     Browser.element
         { init = init
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , view = view
         }
+
+
+port createSubscriptionToMessages : String -> Cmd msg
+
+
+port socketStatusConnected : (() -> msg) -> Sub msg
+
+
+port gotMessageSubscriptionData : (Json.Decode.Value -> msg) -> Sub msg

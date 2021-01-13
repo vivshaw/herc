@@ -11,25 +11,17 @@ import gql from "graphql-tag";
 
 import "compiled.css";
 
-// Replace it with your graphql url
-const GRAPHQL_URI = "hasura.io/learn/graphql";
-
-const getClient = (token) => {
+const getClient = () => {
   // Create an http link:
   const httpLink = new HttpLink({
-    uri: `https://${GRAPHQL_URI}`,
+    uri: `https://herc-graphql.herokuapp.com/graphql`,
   });
 
   // Create a WebSocket link:
   const wsLink = new WebSocketLink({
-    uri: `wss://${GRAPHQL_URI}`,
+    uri: `wss://herc-graphql.herokuapp.com/`,
     options: {
       reconnect: true,
-      connectionParams: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
     },
   });
 
@@ -59,5 +51,29 @@ const getClient = (token) => {
 document.addEventListener("DOMContentLoaded", function () {
   var app = Elm.Main.init({
     node: document.getElementById("myapp"),
+  });
+
+  app.ports.createSubscriptionToMessages.subscribe(function (data) {
+    /* Initiate subscription request */
+
+    getClient()
+      .subscribe({
+        query: gql`
+          ${data}
+        `,
+        variables: {},
+      })
+      .subscribe({
+        next(resp) {
+          console.log("ws: got: ", resp);
+          app.ports.gotMessageSubscriptionData.send(resp);
+        },
+        error(err) {
+          console.log("ws: error is: ", err);
+        },
+      });
+
+    console.log("ws: Connected to websocket");
+    app.ports.socketStatusConnected.send(null);
   });
 });
