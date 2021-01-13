@@ -20,7 +20,7 @@ cabal.sandbox.config
 *.keter
 *~
 \#*
-my-project.cabal
+herc-server.cabal
   
 # elm-package generated files
 elm-stuff/
