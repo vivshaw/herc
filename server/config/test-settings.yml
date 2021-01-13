@@ -7,5 +7,3 @@ database:
   #
   #   database: "_env:SQLITE_DATABASE:my-project_test.sqlite3"
   database: herc-server_test.sqlite3
-
-auth-dummy-login: true

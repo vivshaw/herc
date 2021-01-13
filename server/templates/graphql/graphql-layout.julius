@@ -2,6 +2,6 @@ window.addEventListener('load', function (event) {
   GraphQLPlayground.init(document.getElementById('root'), {
       // options as 'endpoint' belong here
       endpoint: "/graphql",
-      subscriptionEndpoint: "ws://127.0.0.1:3000/"
+      subscriptionEndpoint: "wss://herc-server.herokuapp.com/"
   })
 })

@@ -72,7 +72,7 @@ library:
 # Runnable executable for our application
 executables:
   herc-server:
-    main: main.hs
+    main: Main.hs
     source-dirs: app
     ghc-options:
     - -threaded
