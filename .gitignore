@@ -1,8 +1,8 @@
 # Haskell stuff
 dist*
-static/tmp/
-static/combined/
-config/client_session_key.aes
+server/static/tmp/
+server/static/combined/
+server/config/client_session_key.aes
 *.hi
 *.o
 *.sqlite3
@@ -28,5 +28,5 @@ elm-stuff/
 repl-temp-*
 node_modules
 
+# FIXME: import directly with Webpack
 compiled.css
-main.js
