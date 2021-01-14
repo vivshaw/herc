@@ -1,6 +1,7 @@
 type Message {
   content: String!
   author: String!
+  authorUuid: String!
 }
 
 type Query {
@@ -8,7 +9,7 @@ type Query {
 }
 
 type Mutation {
-  sendMessage(content: String!, author: String!): Message!
+  sendMessage(content: String!, author: String!, authorUuid: String!): Message!
 }
 
 type Subscription {

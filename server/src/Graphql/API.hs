@@ -51,12 +51,12 @@ data Channel
       Hashable
     )
 
-data Content = ContentMessage {msgContent :: Text, msgAuthor :: Text}
+data Content = ContentMessage {msgContent :: Text, msgAuthor :: Text, msgUuid :: Text}
 
 type APIEvent = Event Channel Content
 
-messageEvent :: Text -> Text -> APIEvent
-messageEvent content author = Event [ChannelMessage] (ContentMessage {msgContent = content, msgAuthor = author})
+messageEvent :: Text -> Text -> Text -> APIEvent
+messageEvent content author uuid = Event [ChannelMessage] (ContentMessage {msgContent = content, msgAuthor = author, msgUuid = uuid})
 
 rootResolver :: RootResolver IO APIEvent Query Mutation Subscription
 rootResolver =
@@ -68,34 +68,28 @@ rootResolver =
   where
     messages =
       pure
-        [ Message
-            { content = pure "Message 1",
-              author = pure "Default Author"
-            },
-          Message
-            { content = pure "Message 2",
-              author = pure "Default Author"
-            }
-        ]
+        []
     sendMessage :: SendMessageArgs -> ResolverM APIEvent IO Message
-    sendMessage SendMessageArgs {content, author} = do
-      publish [messageEvent content author]
-      lift (setDBAddress SendMessageArgs {content, author})
+    sendMessage SendMessageArgs {content, author, authorUuid} = do
+      publish [messageEvent content author authorUuid]
+      lift (setDBAddress SendMessageArgs {content, author, authorUuid})
     messageSent :: SubscriptionField (ResolverS APIEvent IO Message)
     messageSent = subscribe ChannelMessage $ do
       pure $ \(Event _ content) -> do
         pure
           Message
             { content = pure (msgContent content),
-              author = pure (msgAuthor content)
+              author = pure (msgAuthor content),
+              authorUuid = pure (msgUuid content)
             }
 
 setDBAddress :: SendMessageArgs -> IO (Message (Resolver MUTATION APIEvent IO))
-setDBAddress SendMessageArgs {content, author} = do
+setDBAddress SendMessageArgs {content, author, authorUuid} = do
   pure
     Message
       { content = pure content,
-        author = pure author
+        author = pure author,
+        authorUuid = pure authorUuid
       }
 
 morpheusApp :: App APIEvent IO
