@@ -27,6 +27,3 @@ elm-stuff/
 # elm-repl generated files
 repl-temp-*
 node_modules
-
-# FIXME: import directly with Webpack
-compiled.css
