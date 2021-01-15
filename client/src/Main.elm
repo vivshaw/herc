@@ -221,7 +221,7 @@ viewMain model =
     div [ class "flex-auto flex flex-row justify-around" ]
         [ case model.route of
             Route.Chat ->
-                div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
+                div [ class "w-full lg:w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
                     [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
                         [ div [ class "flex flex-col items-start" ]
                             [ input
@@ -245,7 +245,7 @@ viewMain model =
                     ]
 
             Route.Help ->
-                div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
+                div [ class "w-full lg:w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
                     [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
                         [ div [ class "flex flex-col items-start" ]
                             [ div
@@ -262,7 +262,7 @@ viewMain model =
                     ]
 
             Route.NotFound ->
-                div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
+                div [ class "w-full lg:w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
                     [ div [ class "container flex flex-col md:flex-row items-center justify-center px-5 text-gray-700" ]
                         [ div [ class "pt-6 max-w-md" ]
                             [ div [ class "text-5xl font-dark font-bold" ] [ text "404" ]
