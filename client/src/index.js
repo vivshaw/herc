@@ -14,12 +14,12 @@ import "compiled.css";
 const getClient = () => {
   // Create an http link:
   const httpLink = new HttpLink({
-    uri: `https://herc-graphql.herokuapp.com/graphql`,
+    uri: `https://herc-server.herokuapp.com/graphql`,
   });
 
   // Create a WebSocket link:
   const wsLink = new WebSocketLink({
-    uri: `wss://herc-graphql.herokuapp.com/`,
+    uri: `wss://herc-server.herokuapp.com/`,
     options: {
       reconnect: true,
     },
@@ -65,7 +65,6 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .subscribe({
         next(resp) {
-          console.log("ws: got: ", resp);
           app.ports.gotMessageSubscriptionData.send(resp);
         },
         error(err) {
@@ -73,7 +72,6 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       });
 
-    console.log("ws: Connected to websocket");
     app.ports.socketStatusConnected.send(null);
   });
 });

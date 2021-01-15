@@ -22,6 +22,7 @@ import Json.Decode as Decode exposing (Decoder)
 type alias SendMessageRequiredArguments =
     { content : String
     , author : String
+    , authorUuid : String
     }
 
 
@@ -30,4 +31,4 @@ sendMessage :
     -> SelectionSet decodesTo ChatAPI.Object.Message
     -> SelectionSet decodesTo RootMutation
 sendMessage requiredArgs object_ =
-    Object.selectionForCompositeField "sendMessage" [ Argument.required "content" requiredArgs.content Encode.string, Argument.required "author" requiredArgs.author Encode.string ] object_ identity
+    Object.selectionForCompositeField "sendMessage" [ Argument.required "content" requiredArgs.content Encode.string, Argument.required "author" requiredArgs.author Encode.string, Argument.required "authorUuid" requiredArgs.authorUuid Encode.string ] object_ identity

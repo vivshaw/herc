@@ -56,7 +56,7 @@
     "repl": "elm repl",
     "reactor": "elm reactor",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-elm-types": "elm-graphql https://herc-graphql.herokuapp.com/graphql --base ChatAPI",
+    "generate-elm-types": "elm-graphql https://herc-server.herokuapp.com/graphql --base ChatAPI",
     "elm-live": "elm-live src/Main.elm -- --output=main.js",
     "build:styles": "postcss src/styles/styles.css -o compiled.css"
   },

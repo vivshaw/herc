@@ -27,3 +27,8 @@ content =
 author : SelectionSet String ChatAPI.Object.Message
 author =
     Object.selectionForField "String" "author" [] Decode.string
+
+
+authorUuid : SelectionSet String ChatAPI.Object.Message
+authorUuid =
+    Object.selectionForField "String" "authorUuid" [] Decode.string

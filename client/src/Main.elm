@@ -12,13 +12,15 @@ import Graphql.Document as Document
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Heroicons.Solid exposing (chat, heart, questionMarkCircle, userCircle)
+import Heroicons.Solid exposing (chat, questionMarkCircle, sparkles, userCircle)
 import Html exposing (Html, a, button, div, input, text, textarea)
 import Html.Attributes exposing (class, classList, href, placeholder, size, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode
+import Random
 import RemoteData exposing (RemoteData, WebData)
 import Svg.Attributes
+import UUID exposing (UUID)
 
 
 
@@ -28,6 +30,7 @@ import Svg.Attributes
 type alias ChatMessage =
     { content : String
     , author : String
+    , authorUuid : String
     }
 
 
@@ -37,7 +40,7 @@ type alias Response =
 
 endpoint : String
 endpoint =
-    "https://herc-graphql.herokuapp.com/graphql"
+    "https://herc-server.herokuapp.com/graphql"
 
 
 query : SelectionSet Response RootQuery
@@ -47,9 +50,10 @@ query =
 
 messageSelection : SelectionSet ChatMessage ChatAPI.Object.Message
 messageSelection =
-    SelectionSet.map2 ChatMessage
+    SelectionSet.map3 ChatMessage
         Message.content
         Message.author
+        Message.authorUuid
 
 
 makeRequest : Cmd Msg
@@ -77,6 +81,16 @@ subscriptionDocument =
 
 
 
+-- Randomness Setup
+
+
+seedRng : Random.Generator Random.Seed
+seedRng =
+    Random.int Random.minInt Random.maxInt
+        |> Random.map Random.initialSeed
+
+
+
 -- Elm Architecture
 
 
@@ -88,6 +102,7 @@ type Msg
     | ChangeComment String
     | NewSubscriptionStatus SubscriptionStatus ()
     | MessageSubscriptionDataReceived Json.Decode.Value
+    | SeedResult UUID
 
 
 type SubscriptionStatus
@@ -100,6 +115,7 @@ type alias Model =
     , currentComment : String
     , chatMessages : RemoteData (Graphql.Http.Error Response) Response
     , subscriptionStatus : SubscriptionStatus
+    , uuid : Maybe String
     }
 
 
@@ -113,8 +129,13 @@ init _ =
       , currentComment = ""
       , chatMessages = RemoteData.Loading
       , subscriptionStatus = NotConnected
+      , uuid = Nothing
       }
-    , Cmd.batch [ makeRequest, createSubscriptionToMessages (subscriptionDocument |> Document.serializeSubscription) ]
+    , Cmd.batch
+        [ makeRequest
+        , createSubscriptionToMessages (subscriptionDocument |> Document.serializeSubscription)
+        , Random.generate SeedResult UUID.generator
+        ]
     )
 
 
@@ -144,12 +165,33 @@ leftMenu =
         ]
 
 
+abbreviateUuid : String -> String
+abbreviateUuid uuid =
+    String.slice 0 4 uuid ++ "..." ++ String.slice -4 (String.length uuid) uuid
+
+
+chip : Bool -> String -> Html.Html Msg
+chip self uuid =
+    case self of
+        True ->
+            div [ class "flex justify-center items-center m-1 font-medium py-1 px-2 bg-white rounded-full text-green-700 bg-green-100 border border-green-300" ]
+                [ div [ class "text-xs font-normal leading-none flex-initial" ]
+                    [ text uuid ]
+                ]
+
+        False ->
+            div [ class "flex justify-center items-center m-1 font-medium py-1 px-2 bg-white rounded-full text-gray-700 bg-gray-100 border border-gray-300" ]
+                [ div [ class "text-xs font-normal leading-none flex-initial" ]
+                    [ text uuid ]
+                ]
+
+
 viewMain : Model -> Html.Html Msg
 viewMain model =
     div [ class "flex-auto flex flex-row justify-around" ]
         [ div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
             [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
-                [ div [ class "" ]
+                [ div [ class "flex flex-col items-start" ]
                     [ input
                         [ value model.name
                         , size (String.length model.name)
@@ -158,14 +200,14 @@ viewMain model =
                         , onInput ChangeName
                         ]
                         []
-                    ]
-                , case model.subscriptionStatus of
-                    NotConnected ->
-                        div [ class "" ] [ text "Connecting..." ]
+                    , case model.uuid of
+                        Just uuid ->
+                            div [ class "pt-1" ] [ chip True (abbreviateUuid uuid) ]
 
-                    Connected ->
-                        div [ class "" ] [ text "Connected!" ]
-                , div [ class "" ] [ heart [ Svg.Attributes.class "w-6 h-6 flex-none" ] ]
+                        Nothing ->
+                            div [ class "pt-1" ] [ text "Initializing..." ]
+                    ]
+                , div [ class "" ] [ sparkles [ Svg.Attributes.class "w-6 h-6 flex-none" ] ]
                 ]
             , viewChat model
             , sendCommentBox model
@@ -175,27 +217,36 @@ viewMain model =
 
 viewChat : Model -> Html.Html Msg
 viewChat model =
-    case model.chatMessages of
-        RemoteData.NotAsked ->
+    case model.uuid of
+        Just uuid ->
+            case model.chatMessages of
+                RemoteData.NotAsked ->
+                    div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Initialising." ]
+
+                RemoteData.Loading ->
+                    div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Loading." ]
+
+                RemoteData.Failure err ->
+                    div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Error!" ]
+
+                RemoteData.Success chatMessages ->
+                    div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] (List.map (comment uuid) chatMessages)
+
+        Nothing ->
             div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Initialising." ]
-
-        RemoteData.Loading ->
-            div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Loading." ]
-
-        RemoteData.Failure err ->
-            div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Error!" ]
-
-        RemoteData.Success chatMessages ->
-            div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] (List.map (comment model.name) chatMessages)
 
 
 comment : String -> ChatMessage -> Html.Html Msg
-comment name message =
+comment uuid message =
+    let
+        isMe =
+            message.authorUuid == uuid
+    in
     div
         [ classList
             [ ( "flex flex-row space-x-2", True )
-            , ( "flex-row", message.author /= name )
-            , ( "flex-row-reverse space-x-reverse", message.author == name )
+            , ( "flex-row-reverse space-x-reverse", isMe )
+            , ( "flex-row", not isMe )
             ]
         ]
         [ userCircle [ Svg.Attributes.class "w-6 h-6 flex-none" ]
@@ -203,30 +254,47 @@ comment name message =
             [ div
                 [ classList
                     [ ( "rounded p-5", True )
-                    , ( "bg-gray-200", message.author /= name )
-                    , ( "bg-green-200", message.author == name )
+                    , ( "bg-green-200", isMe )
+                    , ( "bg-gray-200", not isMe )
                     ]
                 ]
                 [ text message.content ]
-            , div [ class "text-sm text-gray-500" ] [ text message.author ]
+            , div [ class "flex items-center" ]
+                [ div [ class "text-sm text-gray-500" ] [ text message.author ]
+                , chip isMe (abbreviateUuid message.authorUuid)
+                ]
             ]
         ]
 
 
 sendCommentBox : Model -> Html.Html Msg
 sendCommentBox model =
-    div [ class "flex-none h-50 p-5" ]
-        [ div [ class "shadow-md bg-white w-full h-full border hover:border-green-400 focus:border-green-400 rounded p-3 flex flex-col items-start space-y-2" ]
-            [ div [ class "font-semibold border-b-2 border-green-500 text-green-500 pb-1" ] [ text "Reply" ]
-            , textarea [ class "w-full h-full outline-none resize-none", placeholder "Type your reply here.", value model.currentComment, onInput ChangeComment ] []
-            , button [ class "self-end bg-green-400 hover:bg-green-600 text-white font-semibold py-1 px-1 rounded", onClick (SendMessage { author = model.name, content = model.currentComment }) ] [ text "Send" ]
-            ]
-        ]
+    case model.uuid of
+        Just uuid ->
+            div [ class "flex-none h-50 p-5" ]
+                [ div [ class "shadow-md bg-white w-full h-full border hover:border-green-400 focus:border-green-400 rounded p-3 flex flex-col items-start space-y-2" ]
+                    [ div [ class "font-semibold border-b-2 border-green-500 text-green-500 pb-1" ] [ text "Reply" ]
+                    , textarea [ class "w-full h-full outline-none resize-none", placeholder "Type your reply here.", value model.currentComment, onInput ChangeComment ] []
+                    , button [ class "self-end bg-green-400 hover:bg-green-600 text-white font-semibold py-1 px-1 rounded", onClick (SendMessage { author = model.name, content = model.currentComment, authorUuid = uuid }) ] [ text "Send" ]
+                    ]
+                ]
+
+        Nothing ->
+            div [ class "flex-none h-50 p-5" ]
+                [ div [ class "shadow-md bg-white w-full h-full border hover:border-green-400 focus:border-green-400 rounded p-3 flex flex-col items-start space-y-2" ]
+                    [ div [ class "font-semibold border-b-2 border-green-500 text-green-500 pb-1" ] [ text "Reply" ]
+                    , textarea [ class "w-full h-full outline-none resize-none", placeholder "Type your reply here.", value model.currentComment, onInput ChangeComment ] []
+                    , button [ class "self-end bg-green-400 hover:bg-green-600 text-white font-semibold py-1 px-1 rounded" ] [ text "Initializing..." ]
+                    ]
+                ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SeedResult uuid ->
+            ( { model | uuid = Just (UUID.toString uuid) }, Cmd.none )
+
         GotChat response ->
             ( { model | chatMessages = response }, Cmd.none )
 
