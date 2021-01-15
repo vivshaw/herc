@@ -1,10 +1,10 @@
 module Pages.Chat exposing (pageChat)
 
 import Heroicons.Solid exposing (userCircle)
-import Html exposing (Html, a, button, div, input, p, text, textarea)
+import Html exposing (button, div, input, text, textarea)
 import Html.Attributes exposing (class, classList, placeholder, size, type_, value)
 import Html.Events exposing (onClick, onInput)
-import RemoteData exposing (RemoteData)
+import RemoteData
 import Svg.Attributes
 import Types exposing (..)
 
@@ -67,7 +67,7 @@ viewChat model =
                 RemoteData.Loading ->
                     div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Loading." ]
 
-                RemoteData.Failure err ->
+                RemoteData.Failure _ ->
                     div [ class "flex-auto overflow-y-auto p-5 space-y-2" ] [ text "Error!" ]
 
                 RemoteData.Success chatMessages ->

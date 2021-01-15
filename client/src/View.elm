@@ -1,9 +1,8 @@
 module View exposing (root)
 
 import Browser
-import Browser.Navigation as Nav
 import Heroicons.Solid exposing (chat, code, questionMarkCircle)
-import Html exposing (Html, a, div, text)
+import Html exposing (a, div)
 import Html.Attributes exposing (class, href)
 import Pages.Chat exposing (pageChat)
 import Pages.Help exposing (pageHelp)

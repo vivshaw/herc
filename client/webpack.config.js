@@ -2,7 +2,6 @@ const path = require("path");
 const { merge } = require("webpack-merge");
 
 const ClosurePlugin = require("closure-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
@@ -10,8 +9,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 
-var MODE =
-  process.env.npm_lifecycle_event === "prod" ? "production" : "development";
+var MODE = process.env.NODE_ENV === "production" ? "production" : "development";
 var withDebug = !process.env["npm_config_nodebug"] && MODE === "development";
 // this may help for Yarn users
 // var withDebug = !npmParams.includes("--nodebug");
@@ -127,14 +125,6 @@ if (MODE === "production") {
         exclude: [],
         verbose: true,
         dry: false,
-      }),
-      // Copy static assets
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: "src/assets",
-          },
-        ],
       }),
       new MiniCssExtractPlugin({
         // Options similar to the same options in webpackOptions.output

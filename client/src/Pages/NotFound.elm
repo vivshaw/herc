@@ -1,6 +1,6 @@
 module Pages.NotFound exposing (pageNotFound)
 
-import Html exposing (Html, a, div, p, text)
+import Html exposing (a, div, p, text)
 import Html.Attributes exposing (class, href)
 import Types exposing (..)
 

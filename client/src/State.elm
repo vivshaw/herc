@@ -6,10 +6,10 @@ import Browser.Navigation as Nav
 import Graphql.Document as Document
 import Json.Decode
 import Random
-import RemoteData exposing (RemoteData)
-import Route exposing (Route)
+import RemoteData
+import Route
 import Types exposing (..)
-import UUID exposing (UUID)
+import UUID
 import Url
 
 
@@ -67,7 +67,7 @@ update msg model =
                         _ ->
                             ( model, Cmd.none )
 
-                Err error ->
+                Err _ ->
                     ( model, Cmd.none )
 
         LinkClicked urlRequest ->
@@ -94,7 +94,7 @@ port gotMessageSubscriptionData : (Json.Decode.Value -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ gotMessageSubscriptionData MessageSubscriptionDataReceived
         , socketStatusConnected (NewSubscriptionStatus Connected)

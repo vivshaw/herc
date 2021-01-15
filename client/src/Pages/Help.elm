@@ -1,6 +1,6 @@
 module Pages.Help exposing (pageHelp)
 
-import Html exposing (Html, a, div, p, text)
+import Html exposing (div, p, text)
 import Html.Attributes exposing (class)
 import Types exposing (..)
 

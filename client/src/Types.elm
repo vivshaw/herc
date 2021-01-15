@@ -4,7 +4,6 @@ import Browser
 import Browser.Navigation as Nav
 import Graphql.Http
 import Json.Decode
-import Random
 import RemoteData exposing (RemoteData)
 import Route exposing (Route)
 import UUID exposing (UUID)

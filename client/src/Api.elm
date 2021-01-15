@@ -1,16 +1,14 @@
 module Api exposing (..)
 
 import ChatAPI.Mutation as Mutation
-import ChatAPI.Object exposing (Message)
+import ChatAPI.Object
 import ChatAPI.Object.Message as Message exposing (author, content)
 import ChatAPI.Query as Query
-import ChatAPI.Scalar
-import ChatAPI.ScalarCodecs
 import ChatAPI.Subscription as Subscription
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import RemoteData exposing (RemoteData)
+import RemoteData
 import Types exposing (..)
 
 
