@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import Browser
+import Browser.Navigation as Nav
 import ChatAPI.Mutation as Mutation
 import ChatAPI.Object exposing (Message)
 import ChatAPI.Object.Message as Message exposing (author, content)
@@ -12,15 +13,17 @@ import Graphql.Document as Document
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
-import Heroicons.Solid exposing (chat, questionMarkCircle, sparkles, userCircle)
-import Html exposing (Html, a, button, div, input, text, textarea)
+import Heroicons.Solid exposing (chat, code, questionMarkCircle, sparkles, userCircle)
+import Html exposing (Html, a, button, div, input, p, text, textarea)
 import Html.Attributes exposing (class, classList, href, placeholder, size, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode
 import Random
 import RemoteData exposing (RemoteData, WebData)
+import Route exposing (Route)
 import Svg.Attributes
 import UUID exposing (UUID)
+import Url
 
 
 
@@ -103,6 +106,8 @@ type Msg
     | NewSubscriptionStatus SubscriptionStatus ()
     | MessageSubscriptionDataReceived Json.Decode.Value
     | SeedResult UUID
+    | LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
 
 
 type SubscriptionStatus
@@ -116,6 +121,8 @@ type alias Model =
     , chatMessages : RemoteData (Graphql.Http.Error Response) Response
     , subscriptionStatus : SubscriptionStatus
     , uuid : Maybe String
+    , key : Nav.Key
+    , route : Route
     }
 
 
@@ -123,13 +130,15 @@ type alias Flags =
     ()
 
 
-init : Flags -> ( Model, Cmd Msg )
-init _ =
+init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url key =
     ( { name = "Anonymous User"
       , currentComment = ""
       , chatMessages = RemoteData.Loading
       , subscriptionStatus = NotConnected
       , uuid = Nothing
+      , key = key
+      , route = Route.parseUrl url
       }
     , Cmd.batch
         [ makeRequest
@@ -139,27 +148,48 @@ init _ =
     )
 
 
-view : Model -> Html.Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div []
-        [ div [ class "flex flex-row h-screen" ]
-            [ leftMenu
-            , viewMain model
-            ]
-        ]
-
-
-leftMenu : Html.Html Msg
-leftMenu =
-    div [ class "flex flex-col justify-between items-center w-16 p-3" ]
-        [ div [ class "flex flex-col space-y-3" ]
-            [ div [ class "w-8 h-8 bg-green-400 rounded-full flex flex-col items-center justify-center" ]
-                [ chat [ Svg.Attributes.class "w-6 h-6 text-white" ]
+    { title = "herc"
+    , body =
+        [ div []
+            [ div [ class "flex flex-row h-screen" ]
+                [ leftMenu model.route
+                , viewMain model
                 ]
             ]
+        ]
+    }
+
+
+leftMenu : Route -> Html.Html Msg
+leftMenu route =
+    div [ class "flex flex-col justify-between items-center w-16 p-3" ]
+        [ div [ class "flex flex-col space-y-3" ]
+            [ case route of
+                Route.Chat ->
+                    div [ class "w-8 h-8 bg-green-400 rounded-full flex flex-col items-center justify-center" ]
+                        [ a [ href "/" ] [ chat [ Svg.Attributes.class "w-6 h-6 text-white" ] ]
+                        ]
+
+                _ ->
+                    div [ class "w-8 h-8 bg-gray-400 rounded-full flex flex-col items-center justify-center" ]
+                        [ a [ href "/" ] [ chat [ Svg.Attributes.class "w-6 h-6 text-white" ] ]
+                        ]
+            , case route of
+                Route.Help ->
+                    div [ class "w-8 h-8 bg-green-400 rounded-full flex flex-col items-center justify-center" ]
+                        [ a [ href "/help" ] [ questionMarkCircle [ Svg.Attributes.class "w-6 h-6 text-white" ] ]
+                        ]
+
+                _ ->
+                    div [ class "w-8 h-8 bg-gray-400 rounded-full flex flex-col items-center justify-center" ]
+                        [ a [ href "/help" ] [ questionMarkCircle [ Svg.Attributes.class "w-6 h-6 text-white" ] ]
+                        ]
+            ]
         , div [ class "flex flex-col space-y-3" ]
-            [ div [ class "w-8 h-8 bg-gray-400 rounded-full flex flex-col items-center justify-center" ]
-                [ a [ href "https://github.com/vivshaw/herc" ] [ questionMarkCircle [ Svg.Attributes.class "w-6 h-6 text-white" ] ]
+            [ div [ class "w-8 h-8 bg-gray-400 rounded-full flex flex-col items-center justify-center bg-purple-400" ]
+                [ a [ href "https://github.com/vivshaw/herc" ] [ code [ Svg.Attributes.class "w-6 h-6 text-white" ] ]
                 ]
             ]
         ]
@@ -189,29 +219,59 @@ chip self uuid =
 viewMain : Model -> Html.Html Msg
 viewMain model =
     div [ class "flex-auto flex flex-row justify-around" ]
-        [ div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
-            [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
-                [ div [ class "flex flex-col items-start" ]
-                    [ input
-                        [ value model.name
-                        , size (String.length model.name)
-                        , type_ "text"
-                        , class "flex-none outline-none font-semibold border-b-2 border-dashed"
-                        , onInput ChangeName
-                        ]
-                        []
-                    , case model.uuid of
-                        Just uuid ->
-                            div [ class "pt-1" ] [ chip True (abbreviateUuid uuid) ]
+        [ case model.route of
+            Route.Chat ->
+                div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
+                    [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
+                        [ div [ class "flex flex-col items-start" ]
+                            [ input
+                                [ value model.name
+                                , size (String.length model.name)
+                                , type_ "text"
+                                , class "flex-none outline-none font-semibold border-b-2 border-dashed"
+                                , onInput ChangeName
+                                ]
+                                []
+                            , case model.uuid of
+                                Just uuid ->
+                                    div [ class "pt-1" ] [ chip True (abbreviateUuid uuid) ]
 
-                        Nothing ->
-                            div [ class "pt-1" ] [ text "Initializing..." ]
+                                Nothing ->
+                                    div [ class "pt-1" ] [ text "Initializing..." ]
+                            ]
+                        ]
+                    , viewChat model
+                    , sendCommentBox model
                     ]
-                , div [ class "" ] [ sparkles [ Svg.Attributes.class "w-6 h-6 flex-none" ] ]
-                ]
-            , viewChat model
-            , sendCommentBox model
-            ]
+
+            Route.Help ->
+                div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
+                    [ div [ class "flex-none h-16 flex flex-row justify-between items-center p-5 bg-white border-b border-gray-400" ]
+                        [ div [ class "flex flex-col items-start" ]
+                            [ div
+                                [ class "flex-none outline-none font-semibold"
+                                ]
+                                [ text "Haskell & Elm Rudimentary Chat" ]
+                            ]
+                        ]
+                    , div [ class "p-5" ]
+                        [ p [ class "pb-3" ] [ text "Welcome to Haskell & Elm Rudimentary Chat (herc), a pure-functional realtime chat app! herc runs on an Elm <- Graphql <- Haskell stack, with the backend built on Yesod." ]
+                        , p [ class "pb-3" ] [ text "In herc, you're identified by a UUID (generated on pageload). You may also select a user nickname. Click on \"Anonymous User\" in the title bar to edit your nick. Messages you wrote will be highlighted in green, while those written by others are highlighted in grey." ]
+                        , p [ class "pb-3" ] [ text "Send messages via the \"Reply\" box." ]
+                        ]
+                    ]
+
+            Route.NotFound ->
+                div [ class "w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
+                    [ div [ class "container flex flex-col md:flex-row items-center justify-center px-5 text-gray-700" ]
+                        [ div [ class "pt-6 max-w-md" ]
+                            [ div [ class "text-5xl font-dark font-bold" ] [ text "404" ]
+                            , p [ class "pt-2 text-2xl md:text-3xl font-light leading-normal" ] [ text "Sorry, there's no such page." ]
+                            , p [ class "pt-1 mb-8" ] [ text "No worries- you can just return to the chat!" ]
+                            , a [ href "/", class "px-4 inline py-2 text-sm font-medium leading-5 shadow text-white transition-colors duration-150 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-green bg-green-400 active:bg-green-400 hover:bg-green-600" ] [ text "back to chat" ]
+                            ]
+                        ]
+                    ]
         ]
 
 
@@ -333,6 +393,19 @@ update msg model =
                 Err error ->
                     ( model, Cmd.none )
 
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Nav.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Nav.load href )
+
+        UrlChanged url ->
+            ( { model | route = Route.parseUrl url }
+            , Cmd.none
+            )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -344,11 +417,13 @@ subscriptions model =
 
 main : Program Flags Model Msg
 main =
-    Browser.element
+    Browser.application
         { init = init
         , update = update
         , subscriptions = subscriptions
         , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
