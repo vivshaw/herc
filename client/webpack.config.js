@@ -49,7 +49,16 @@ var common = {
       {
         test: /\.css$/,
         exclude: [/elm-stuff/, /node_modules/],
-        use: ["style-loader", "css-loader?url=false", "postcss-loader"],
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: {
+              importLoaders: 1,
+            },
+          },
+          "postcss-loader",
+        ],
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,

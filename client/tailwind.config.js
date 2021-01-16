@@ -1,5 +1,5 @@
 module.exports = {
-  purge: ["./dist/index.js"],
+  purge: ["./src/*.elm", "./src/Pages/*.elm"],
   darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {},
