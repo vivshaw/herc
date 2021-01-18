@@ -9,8 +9,7 @@
 
 module Handler.Graphql where
 
-import Data.Morpheus.Types (GQLRequest, GQLResponse)
-import Graphql.API (getApi)
+import Data.Morpheus.Types (GQLRequest)
 import Import
 import Layout (graphqlLayout)
 
