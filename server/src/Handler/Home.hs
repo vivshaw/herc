@@ -20,5 +20,5 @@ getHomeR = defaultLayout $ do
   setTitle "Welcome To Yesod!"
   $(widgetFile "homepage")
 
-getAllComments :: DB [Entity Message]
-getAllComments = selectList [] [Asc MessageId]
+getAllComments :: DB [Entity MessagePersist]
+getAllComments = selectList [] [Asc MessagePersistId]

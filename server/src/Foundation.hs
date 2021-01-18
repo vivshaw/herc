@@ -14,7 +14,7 @@ import qualified Data.CaseInsensitive as CI
 import Data.Morpheus.Types (GQLRequest, GQLResponse)
 import qualified Data.Text.Encoding as TE
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
-import Graphql.API (APIEvent)
+import Graphql.Types (APIEvent)
 import Import.NoFoundation
 import Network.WebSockets
   ( ServerApp,
@@ -40,9 +40,9 @@ data App = App
     -- | Morpheus GraphQL WebSockets app
     wsApp :: ServerApp,
     -- | Morpheus GraphQL publish channel
-    publish :: APIEvent -> IO (),
+    publish :: APIEvent -> HandlerT App IO (),
     -- | Morpheus GraphQL API
-    graphqlApi :: GQLRequest -> IO GQLResponse
+    graphqlApi :: GQLRequest -> HandlerT App IO GQLResponse
   }
 
 data MenuItem = MenuItem

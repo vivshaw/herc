@@ -9,7 +9,8 @@
 
 module Handler.Graphql where
 
-import Data.Morpheus.Types (GQLRequest)
+import Data.Morpheus.Types (GQLRequest, GQLResponse)
+import Graphql.API (getApi)
 import Import
 import Layout (graphqlLayout)
 
@@ -21,5 +22,5 @@ postGraphqlR :: Handler Value
 postGraphqlR = do
   App {graphqlApi} <- getYesod
   body <- requireCheckJsonBody :: Handler GQLRequest
-  result <- (liftIO . graphqlApi) body
+  result <- graphqlApi body
   returnJson result

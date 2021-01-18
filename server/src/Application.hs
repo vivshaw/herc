@@ -25,16 +25,17 @@ module Application
 where
 
 import Control.Monad.Logger (liftLoc, runLoggingT)
-import Data.Morpheus.Subscriptions (httpPubApp, webSocketsApp)
+import Data.Morpheus.Subscriptions (ServerApp)
+-- Import all relevant handler modules here.
+-- Don't forget to add new modules to your cabal file!
+import Data.Morpheus.Types (GQLRequest, GQLResponse)
 import Database.Persist.Sqlite
   ( createSqlitePool,
     runSqlPool,
     sqlDatabase,
     sqlPoolSize,
   )
-import Graphql.API (morpheusApp)
--- Import all relevant handler modules here.
--- Don't forget to add new modules to your cabal file!
+import Graphql.API (APIEvent, getApi)
 import Handler.Common
 import Handler.Graphql
 import Handler.Home
@@ -78,12 +79,16 @@ import Util.Cors (allowCors)
 -- comments there for more details.
 mkYesodDispatch "App" resourcesApp
 
--- | This function allocates resources (such as a database connection pool),
--- performs initialization and returns a foundation datatype value. This is also
--- the place to put your migrate statements to have automatic database
--- migrations handled by Yesod.
-makeFoundation :: AppSettings -> IO App
-makeFoundation appSettings = do
+-- | This function fakes makeFoundation without initializing (wsApp, graphqlApi, publish),
+-- and here's why this is necessary. We want these Morpheus functions in our
+-- AppSettings, but they are inside the Handler monad and thus must be run here
+-- with `handler`, but `handler` itself calls `makeFoundation`!
+-- To resolve this cycle, we split makeFoundation into two versions-
+-- `fakeFoundation` skips the Morpheus initialization
+-- `makeFoundation` takes the Morpheus functions as an argument.
+-- They are then actually intialized inside `getApplication` and passed into `makeFoundation`.
+fakeFoundation :: AppSettings -> IO App
+fakeFoundation appSettings = do
   -- Some basic initializations: HTTP connection manager, logger, and static
   -- subsite.
   appHttpManager <- getGlobalManager
@@ -92,9 +97,44 @@ makeFoundation appSettings = do
     (if appMutableStatic appSettings then staticDevel else static)
       (appStaticDir appSettings)
 
-  -- Initialize Morpheus GraphQL
-  (wsApp, publish) <- webSocketsApp $ morpheusApp
-  let graphqlApi = httpPubApp [publish] morpheusApp
+  -- We need a log function to create a connection pool. We need a connection
+  -- pool to create our foundation. And we need our foundation to get a
+  -- logging function. To get out of this loop, we initially create a
+  -- temporary foundation without a real connection pool, get a log function
+  -- from there, and then create the real foundation.
+  let mkFoundation appConnPool = App {..}
+      -- The App {..} syntax is an example of record wild cards. For more
+      -- information, see:
+      -- https://ocharles.org.uk/blog/posts/2014-12-04-record-wildcards.html
+      tempFoundation = mkFoundation $ error "connPool forced in tempFoundation"
+      logFunc = messageLoggerSource tempFoundation appLogger
+
+  -- Create the database connection pool
+  pool <-
+    flip runLoggingT logFunc $
+      createSqlitePool
+        (sqlDatabase $ appDatabaseConf appSettings)
+        (sqlPoolSize $ appDatabaseConf appSettings)
+
+  -- Perform database migration using our application's logging settings.
+  runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
+
+  -- Return the foundation
+  return $ mkFoundation pool
+
+-- | This function allocates resources (such as a database connection pool),
+-- performs initialization and returns a foundation datatype value. This is also
+-- the place to put your migrate statements to have automatic database
+-- migrations handled by Yesod.
+makeFoundation :: AppSettings -> (GQLRequest -> Handler GQLResponse, ServerApp, APIEvent -> Handler ()) -> IO App
+makeFoundation appSettings (graphqlApi, wsApp, publish) = do
+  -- Some basic initializations: HTTP connection manager, logger, and static
+  -- subsite.
+  appHttpManager <- getGlobalManager
+  appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
+  appStatic <-
+    (if appMutableStatic appSettings then staticDevel else static)
+      (appStaticDir appSettings)
 
   -- We need a log function to create a connection pool. We need a connection
   -- pool to create our foundation. And we need our foundation to get a
@@ -171,7 +211,8 @@ warpSettings foundation =
 getApplicationDev :: IO (Settings, Application)
 getApplicationDev = do
   settings <- getAppSettings
-  foundation <- makeFoundation settings
+  morpheus <- handler getApi
+  foundation <- makeFoundation settings morpheus
   wsettings <- getDevSettings $ warpSettings foundation
   app <- makeApplication foundation
   return (wsettings, app)
@@ -195,7 +236,8 @@ appMain = do
       useEnv
 
   -- Generate the foundation from the settings
-  foundation <- makeFoundation settings
+  morpheus <- handler getApi
+  foundation <- makeFoundation settings morpheus
 
   -- Generate a WAI Application from the foundation
   app <- makeApplication foundation
@@ -209,7 +251,8 @@ appMain = do
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do
   settings <- getAppSettings
-  foundation <- makeFoundation settings
+  morpheus <- handler getApi
+  foundation <- makeFoundation settings morpheus
   wsettings <- getDevSettings $ warpSettings foundation
   app1 <- makeApplication foundation
   return (getPort wsettings, foundation, app1)
@@ -223,7 +266,7 @@ shutdownApp _ = return ()
 
 -- | Run a handler
 handler :: Handler a -> IO a
-handler h = getAppSettings >>= makeFoundation >>= flip unsafeHandler h
+handler h = getAppSettings >>= fakeFoundation >>= flip unsafeHandler h
 
 -- | Run DB queries
 db :: ReaderT SqlBackend Handler a -> IO a

@@ -13,6 +13,7 @@
 module Graphql.API
   ( morpheusApp,
     APIEvent,
+    getApi,
   )
 where
 
@@ -24,10 +25,14 @@ import Data.Morpheus
 import Data.Morpheus.Document (importGQLDocument)
 import Data.Morpheus.Subscriptions
   ( Event (..),
-    Hashable,
+    ServerApp,
+    httpPubApp,
+    webSocketsApp,
   )
 import Data.Morpheus.Types
-  ( MUTATION,
+  ( GQLRequest,
+    GQLResponse,
+    MUTATION,
     Resolver,
     ResolverM,
     ResolverS,
@@ -37,28 +42,15 @@ import Data.Morpheus.Types
     subscribe,
   )
 import Data.Text (Text)
-import GHC.Generics (Generic)
+import Graphql.Types (APIEvent, Channel (..), ContentMsg (..))
+import Import (Handler, HandlerFor, MessagePersist (..), handlerToIO, insertEntity, runDB)
 
 importGQLDocument "schema.gql"
 
-data Channel
-  = ChannelMessage
-  deriving
-    ( Show,
-      Eq,
-      Ord,
-      Generic,
-      Hashable
-    )
-
-data Content = ContentMessage {msgContent :: Text, msgAuthor :: Text, msgUuid :: Text}
-
-type APIEvent = Event Channel Content
-
 messageEvent :: Text -> Text -> Text -> APIEvent
-messageEvent content author uuid = Event [ChannelMessage] (ContentMessage {msgContent = content, msgAuthor = author, msgUuid = uuid})
+messageEvent content author uuid = Event [Channel] (ContentMsg {msgContent = content, msgAuthor = author, msgUuid = uuid})
 
-rootResolver :: RootResolver IO APIEvent Query Mutation Subscription
+rootResolver :: RootResolver Handler APIEvent Query Mutation Subscription
 rootResolver =
   RootResolver
     { queryResolver = Query {messages},
@@ -69,12 +61,12 @@ rootResolver =
     messages =
       pure
         []
-    sendMessage :: SendMessageArgs -> ResolverM APIEvent IO Message
+    sendMessage :: SendMessageArgs -> ResolverM APIEvent Handler Message
     sendMessage SendMessageArgs {content, author, authorUuid} = do
       publish [messageEvent content author authorUuid]
       lift (setDBAddress SendMessageArgs {content, author, authorUuid})
-    messageSent :: SubscriptionField (ResolverS APIEvent IO Message)
-    messageSent = subscribe ChannelMessage $ do
+    messageSent :: SubscriptionField (ResolverS APIEvent Handler Message)
+    messageSent = subscribe Channel $ do
       pure $ \(Event _ content) -> do
         pure
           Message
@@ -83,8 +75,10 @@ rootResolver =
               authorUuid = pure (msgUuid content)
             }
 
-setDBAddress :: SendMessageArgs -> IO (Message (Resolver MUTATION APIEvent IO))
+setDBAddress :: SendMessageArgs -> Handler (Message (Resolver MUTATION APIEvent Handler))
 setDBAddress SendMessageArgs {content, author, authorUuid} = do
+  let msgPersist = MessagePersist {messagePersistContent = content, messagePersistAuthor = author, messagePersistAuthorUuid = authorUuid}
+
   pure
     Message
       { content = pure content,
@@ -92,5 +86,11 @@ setDBAddress SendMessageArgs {content, author, authorUuid} = do
         authorUuid = pure authorUuid
       }
 
-morpheusApp :: App APIEvent IO
+morpheusApp :: App APIEvent Handler
 morpheusApp = deriveApp rootResolver
+
+getApi :: Handler (GQLRequest -> Handler GQLResponse, ServerApp, APIEvent -> Handler ())
+getApi = do
+  (wsApp, publish') <- webSocketsApp morpheusApp
+  let graphqlApi = httpPubApp [publish'] morpheusApp
+  return (graphqlApi, wsApp, publish')
