@@ -7,7 +7,7 @@ module TestImport
   )
 where
 
-import Application (makeFoundation, makeLogWare)
+import Application (handler, makeFoundation, makeLogWare)
 import ClassyPrelude as X hiding (Handler, delete, deleteBy)
 -- Wiping the database
 
@@ -16,6 +16,7 @@ import Database.Persist as X hiding (get)
 import Database.Persist.Sql (SqlPersistM, connEscapeName, rawExecute, rawSql, runSqlPersistMPool, unSingle)
 import Database.Persist.Sqlite (createSqlitePoolFromInfo, fkEnabled, mkSqliteConnectionInfo, sqlDatabase)
 import Foundation as X
+import Graphql.API (getApi)
 import Lens.Micro (set)
 import Model as X
 import Settings (appDatabaseConf)
@@ -42,7 +43,8 @@ withApp = before $ do
       ["config/test-settings.yml", "config/settings.yml"]
       []
       useEnv
-  foundation <- makeFoundation settings
+  morpheus <- handler getApi
+  foundation <- makeFoundation settings morpheus
   wipeDB foundation
   logWare <- liftIO $ makeLogWare foundation
   return (foundation, logWare)
