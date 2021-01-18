@@ -40,9 +40,9 @@ data App = App
     -- | Morpheus GraphQL WebSockets app
     wsApp :: ServerApp,
     -- | Morpheus GraphQL publish channel
-    publish :: APIEvent -> HandlerT App IO (),
+    publish :: APIEvent -> HandlerFor App (),
     -- | Morpheus GraphQL API
-    graphqlApi :: GQLRequest -> HandlerT App IO GQLResponse
+    graphqlApi :: GQLRequest -> HandlerFor App GQLResponse
   }
 
 data MenuItem = MenuItem
