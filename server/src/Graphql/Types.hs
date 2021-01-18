@@ -12,17 +12,14 @@
 
 module Graphql.Types
   ( Channel (..),
-    ContentMsg (..),
     APIEvent,
   )
 where
 
 import Data.Morpheus.Subscriptions
   ( Event (..),
-    Hashable,
   )
-import Data.Text (Text)
-import GHC.Generics (Generic)
+import Import.NoFoundation
 
 data Channel
   = Channel
@@ -34,6 +31,4 @@ data Channel
       Hashable
     )
 
-data ContentMsg = ContentMsg {msgContent :: Text, msgAuthor :: Text, msgUuid :: Text}
-
-type APIEvent = Event Channel ContentMsg
+type APIEvent = Event Channel MessagePersist

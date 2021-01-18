@@ -43,12 +43,22 @@ import Data.Morpheus.Types
     publish,
     subscribe,
   )
-import Graphql.Types (APIEvent, Channel (..), ContentMsg (..))
+import Graphql.Types (APIEvent, Channel (..))
 import Import hiding (App, Query, publish, (.))
 
 -- I am using schema-first GraphQL, so I must first import the schema.
 -- FIXME: Would code-first be more elegant here?
 importGQLDocument "schema.gql"
+
+-- Maps a single MessagePersist to a Morpheus GraphQL Message.
+-- FIXME: Probably a more elegant way to do this.
+toGqlMessage :: Monad m => MessagePersist -> Message m
+toGqlMessage msg =
+  Message
+    { content = pure $ messagePersistContent msg,
+      author = pure $ messagePersistAuthor msg,
+      authorUuid = pure $ messagePersistAuthorUuid msg
+    }
 
 -- Our root resolver will unite all our sub-resolvers,
 -- and handle all GraphQL requests recieved by our backend.
@@ -69,46 +79,39 @@ rootResolver =
     -- Inserts a single Message to the DB, and returns it.
     sendMessage :: SendMessageArgs -> ResolverM APIEvent Handler Message
     sendMessage SendMessageArgs {content, author, authorUuid} = do
-      publish [Event [Channel] ContentMsg {msgContent = content, msgAuthor = author, msgUuid = authorUuid}]
-      lift (insertMessageDB SendMessageArgs {content, author, authorUuid})
+      publish [Event [Channel] msg]
+      lift (insertMessageDB msg)
+      where
+        msg =
+          MessagePersist
+            { messagePersistContent = content,
+              messagePersistAuthor = author,
+              messagePersistAuthorUuid = authorUuid
+            }
 
     -- Subscription resolver.
     -- Is called only by `sendMessage`, and simply echoes back all Messages
     -- that are sent, to enable real-time chatting.
+    -- FIXME: Pretty sure this can be simplified.
     messageSent :: SubscriptionField (ResolverS APIEvent Handler Message)
     messageSent = subscribe Channel $ do
-      pure $ \(Event _ ContentMsg {msgContent, msgAuthor, msgUuid}) -> do
-        pure
-          Message
-            { content = pure msgContent,
-              author = pure msgAuthor,
-              authorUuid = pure msgUuid
-            }
-
--- Maps a single MessagePersist to a Morpheus GraphQL Message.
--- FIXME: Probably a more elegant way to do this.
-toGqlMessage :: Monad m => MessagePersist -> Message m
-toGqlMessage MessagePersist {messagePersistContent, messagePersistAuthor, messagePersistAuthorUuid} =
-  Message
-    { content = pure messagePersistContent,
-      author = pure messagePersistAuthor,
-      authorUuid = pure messagePersistAuthorUuid
-    }
+      pure $ \(Event _ msg) ->
+        pure $ toGqlMessage msg
 
 -- Handler to insert a single Message into the database.
 -- Returns the inserted Message.
-insertMessageDB :: SendMessageArgs -> Handler (Message (Resolver MUTATION APIEvent Handler))
-insertMessageDB SendMessageArgs {content, author, authorUuid} = do
-  insertedMsg <- runDB $ insertEntity MessagePersist {messagePersistContent = content, messagePersistAuthor = author, messagePersistAuthorUuid = authorUuid}
+insertMessageDB :: MessagePersist -> Handler (Message (Resolver MUTATION APIEvent Handler))
+insertMessageDB msg = do
+  insertedMsg <- runDB $ insertEntity msg
   pure $ toGqlMessage $ entityVal insertedMsg
 
 -- Handler to return a list of all Messages in our database,
 -- then fmap them to the appropriate format for our Query resolver.
--- Returns a List of Messages.
+-- Returns a List of Messages, in ascending order by ID.
 getAllMessagesDB :: Handler [Message (Resolver QUERY APIEvent Handler)]
 getAllMessagesDB = do
-  insertedMsg <- runDB $ selectList [] [Asc MessagePersistId]
-  pure $ toGqlMessage . entityVal <$> insertedMsg
+  allMessages <- runDB $ selectList [] [Asc MessagePersistId]
+  pure $ toGqlMessage . entityVal <$> allMessages
 
 -- Derive our App. We will only work with this inside `getApi`.
 morpheusApp :: App APIEvent Handler
