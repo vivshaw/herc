@@ -1,9 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -13,10 +10,11 @@ import Data.Morpheus.Types (GQLRequest)
 import Import
 import Layout (graphqlLayout)
 
+-- GET route displays GraphQL Playground
 getGraphqlR :: Handler Html
-getGraphqlR = do
-  graphqlLayout ([whamlet|Empty Widget|])
+getGraphqlR = graphqlLayout
 
+-- POST route handles GraphQL queries
 postGraphqlR :: Handler Value
 postGraphqlR = do
   App {graphqlApi} <- getYesod

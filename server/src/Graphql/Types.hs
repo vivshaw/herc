@@ -4,10 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Graphql.Types
@@ -21,6 +18,7 @@ import Data.Morpheus.Subscriptions
   )
 import Import.NoFoundation
 
+-- The PubSub channel over which the GraphQL subscription events are sent.
 data Channel
   = Channel
   deriving
@@ -31,4 +29,6 @@ data Channel
       Hashable
     )
 
+-- The Events which will be sent over the PubSub channel.
+-- As the Msg to be sent, I'm using the Persistent model directly for tidiness.
 type APIEvent = Event Channel MessagePersist

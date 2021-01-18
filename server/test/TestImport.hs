@@ -9,8 +9,6 @@ where
 
 import Application (handler, makeFoundation, makeLogWare)
 import ClassyPrelude as X hiding (Handler, delete, deleteBy)
--- Wiping the database
-
 import Control.Monad.Logger (runLoggingT)
 import Database.Persist as X hiding (get)
 import Database.Persist.Sql (SqlPersistM, connEscapeName, rawExecute, rawSql, runSqlPersistMPool, unSingle)

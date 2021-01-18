@@ -10,16 +10,13 @@
 module Foundation where
 
 import Control.Monad.Logger (LogSource)
-import qualified Data.CaseInsensitive as CI
 import Data.Morpheus.Types (GQLRequest, GQLResponse)
-import qualified Data.Text.Encoding as TE
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Graphql.Types (APIEvent)
 import Import.NoFoundation
 import Network.WebSockets
   ( ServerApp,
   )
-import Text.Hamlet (hamletFile)
 import Text.Jasmine (minifym)
 import Yesod.Core.Types (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
@@ -45,16 +42,6 @@ data App = App
     graphqlApi :: GQLRequest -> HandlerFor App GQLResponse
   }
 
-data MenuItem = MenuItem
-  { menuItemLabel :: Text,
-    menuItemRoute :: Route App,
-    menuItemAccessCallback :: Bool
-  }
-
-data MenuTypes
-  = NavbarLeft MenuItem
-  | NavbarRight MenuItem
-
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
 -- http://www.yesodweb.com/book/routing-and-handlers
@@ -68,9 +55,6 @@ data MenuTypes
 -- type Handler = HandlerFor App
 -- type Widget = WidgetFor App ()
 mkYesodData "App" $(parseRoutesFile "config/routes.yesodroutes")
-
--- | A convenient synonym for creating forms.
-type Form x = Html -> MForm (HandlerFor App) (FormResult x, Widget)
 
 -- | A convenient synonym for database access functions.
 type DB a =
@@ -89,14 +73,8 @@ instance Yesod App where
       Nothing -> getApprootText guessApproot app req
       Just root -> root
 
-  -- Store session data on the client in encrypted cookies,
-  -- default session idle timeout is 120 minutes
   makeSessionBackend :: App -> IO (Maybe SessionBackend)
-  makeSessionBackend _ =
-    Just
-      <$> defaultClientSessionBackend
-        120 -- timeout in minutes
-        "config/client_session_key.aes"
+  makeSessionBackend _ = return Nothing
 
   -- Yesod Middleware allows you to run code before and after each handler function.
   -- The defaultYesodMiddleware adds the response header "Vary: Accept, Accept-Language" and performs authorization checks.
@@ -107,35 +85,6 @@ instance Yesod App where
   -- For details, see the CSRF documentation in the Yesod.Core.Handler module of the yesod-core package.
   yesodMiddleware :: ToTypedContent res => Handler res -> Handler res
   yesodMiddleware = defaultYesodMiddleware
-
-  defaultLayout :: Widget -> Handler Html
-  defaultLayout widget = do
-    master <- getYesod
-    mmsg <- getMessage
-    mcurrentRoute <- getCurrentRoute
-
-    -- Define the menu items of the header.
-    let menuItems =
-          [ NavbarLeft $
-              MenuItem
-                { menuItemLabel = "Home",
-                  menuItemRoute = HomeR,
-                  menuItemAccessCallback = True
-                }
-          ]
-
-    let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
-
-    -- We break up the default layout into two components:
-    -- default-layout is the contents of the body tag, and
-    -- default-layout-wrapper is the entire page. Since the final
-    -- value passed to hamletToRepHtml cannot be a widget, this allows
-    -- you to use normal widget features in default-layout.
-
-    pc <- widgetToPageContent $ do
-      addStylesheet $ StaticR css_bootstrap_css
-      $(widgetFile "default-layout")
-    withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
   -- This function creates static content files in the static folder
   -- and names them based on a hash of their content. This allows

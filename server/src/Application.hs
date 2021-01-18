@@ -38,7 +38,6 @@ import Database.Persist.Sqlite
 import Graphql.API (APIEvent, getApi)
 import Handler.Common
 import Handler.Graphql
-import Handler.Home
 import Import
 import Language.Haskell.TH.Syntax (qLocation)
 import Network.HTTP.Client.TLS (getGlobalManager)
@@ -165,11 +164,15 @@ makeFoundation appSettings (graphqlApi, wsApp, publish) = do
 -- applying some additional middlewares.
 makeApplication :: App -> IO Application
 makeApplication foundation = do
+  -- Create the Yesod WAI application and apply middlewares
   logWare <- makeLogWare foundation
-  -- Create the WAI application and apply middlewares
   appPlain <- toWaiAppPlain foundation
-  let socketApp = wsApp foundation
   let yesodApp = logWare $ defaultMiddlewaresNoLogging $ allowCors appPlain
+
+  -- Retrive our WAI ServerApp for GraphQL subscriptions from foundation,
+  -- then use `websocketsOr` to serve our ServerApp for all WebSockets requests,
+  -- and the Yesod WAI app for all other requests.
+  let socketApp = wsApp foundation
   return $ websocketsOr defaultConnectionOptions socketApp yesodApp
 
 makeLogWare :: App -> IO Middleware
@@ -235,7 +238,7 @@ appMain = do
       -- allow environment variables to override
       useEnv
 
-  -- Generate the foundation from the settings
+  -- Generate the foundation from the settings and the GraphQL services.
   morpheus <- handler getApi
   foundation <- makeFoundation settings morpheus
 
