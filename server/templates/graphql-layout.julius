@@ -1,0 +1,10 @@
+var url = #{root}.replace(/^https?:\/\//,'');
+var prefix = #{root} === "http://localhost:3000" ? "ws://" : "wss://";
+
+window.addEventListener('load', function (event) {
+  GraphQLPlayground.init(document.getElementById('root'), {
+      // options as 'endpoint' belong here
+      endpoint: #{root},
+      subscriptionEndpoint: prefix + url
+  })
+})
