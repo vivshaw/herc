@@ -11,6 +11,9 @@ import gql from "graphql-tag";
 
 import "./styles/styles.css";
 
+// Fire when Elm attempts to connect to WebSockets.
+// Returns an ApolloClient pointed at the herc server,
+// and configured for WebSockets.
 const getClient = () => {
   // Create an http link:
   const httpLink = new HttpLink({
@@ -25,8 +28,7 @@ const getClient = () => {
     },
   });
 
-  // using the ability to split links, you can send data to each link
-  // depending on what kind of operation is being sent
+  // FIXME: is splitting really necessary here?
   const link = split(
     // split based on operation type
     ({ query }) => {
@@ -39,6 +41,7 @@ const getClient = () => {
     wsLink,
     httpLink
   );
+
   const client = new ApolloClient({
     link: link,
     cache: new InMemoryCache({
@@ -48,23 +51,27 @@ const getClient = () => {
   return client;
 };
 
+// The action begins on page load!
 document.addEventListener("DOMContentLoaded", function () {
+  // Initialize Elm
   var app = Elm.Main.init({
     node: document.getElementById("myapp"),
   });
 
+  // When Elm calls `createSubscriptionTomessages`...
   app.ports.createSubscriptionToMessages.subscribe(function (data) {
-    /* Initiate subscription request */
-
     getClient()
+      // initiate a subscription request...
       .subscribe({
         query: gql`
           ${data}
         `,
         variables: {},
       })
+      // then subscribe to the resulting Observable...
       .subscribe({
         next(resp) {
+          // and pass Messages to Elm as they are observed.
           app.ports.gotMessageSubscriptionData.send(resp);
         },
         error(err) {
@@ -72,6 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
       });
 
+    // Tell Elm that WebSockets are ready!
     app.ports.socketStatusConnected.send(null);
   });
 });
