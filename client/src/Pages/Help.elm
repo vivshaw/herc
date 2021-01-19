@@ -5,6 +5,8 @@ import Html.Attributes exposing (class)
 import Types exposing (..)
 
 
+{-| The Help page. Gives a short description of the herc app.
+-}
 pageHelp : Html.Html Msg
 pageHelp =
     div [ class "w-full lg:w-3/5 border-l border-r border-gray-400 flex flex-col linedBg" ]
