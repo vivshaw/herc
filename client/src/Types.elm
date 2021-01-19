@@ -13,9 +13,9 @@ import Url
 type Msg
     = GotChat (RemoteData (Graphql.Http.Error Response) Response)
     | SendMessage ChatMessage
-    | SentMessage (Result (Graphql.Http.Error ChatMessage) ChatMessage)
+    | MessageSent (Result (Graphql.Http.Error ChatMessage) ChatMessage)
     | ChangeName String
-    | ChangeComment String
+    | ChangeContent String
     | NewSubscriptionStatus SubscriptionStatus ()
     | MessageSubscriptionDataReceived Json.Decode.Value
     | SeedResult UUID
@@ -41,7 +41,7 @@ type SubscriptionStatus
 
 type alias Model =
     { name : String
-    , currentComment : String
+    , currentContent : String
     , chatMessages : RemoteData (Graphql.Http.Error Response) Response
     , subscriptionStatus : SubscriptionStatus
     , uuid : Maybe String

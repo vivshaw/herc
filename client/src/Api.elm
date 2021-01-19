@@ -14,6 +14,7 @@ import Types exposing (..)
 
 
 -- GraphQL Setup
+-- The GraphQL endpoint we plan to hit. Currently hard-coded.
 
 
 endpoint : String
@@ -25,6 +26,10 @@ endpoint =
 query : SelectionSet Response RootQuery
 query =
     Query.messages messageSelection
+
+
+
+-- Selects all fields from a ChatMessage.
 
 
 messageSelection : SelectionSet ChatMessage ChatAPI.Object.Message
@@ -51,7 +56,7 @@ doMutation : SelectionSet ChatMessage RootMutation -> Cmd Msg
 doMutation mutation =
     mutation
         |> Graphql.Http.mutationRequest endpoint
-        |> Graphql.Http.send SentMessage
+        |> Graphql.Http.send MessageSent
 
 
 subscriptionDocument : SelectionSet ChatMessage RootSubscription
