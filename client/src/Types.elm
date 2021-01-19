@@ -65,6 +65,8 @@ type Msg
     | LinkClicked Browser.UrlRequest
       -- URL changed- in here just handle route parsing
     | UrlChanged Url.Url
+      -- Do nothing
+    | NoOp
 
 
 {-| A single chat message.

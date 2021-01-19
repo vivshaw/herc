@@ -113,6 +113,9 @@ update msg model =
             , Cmd.none
             )
 
+        NoOp ->
+            ( model, Cmd.none )
+
 
 {-| TEA Subscriptions
 -}
