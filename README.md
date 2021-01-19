@@ -1,17 +1,17 @@
-# herc (Haskell & Elm Rudimentary Chat)
+# herc (Haskell & Elm Rudimentary Chat) 💪
 
-This is a learning project for getting up to speed with Elm frontends and Haskell backends! When fully functional, it will be a realtime chat app. I'm using GraphQL to enjoy type-safety throughout the stack. 👍
+[herc](https://herc-chat.netlify.app/) is a learning project for getting up to speed with Elm! It is a real-time chat app with Elm frontend and Haskell backend, using GraphQL to enjoy type-safety throughout the stack. 👍
 
-## Client
+You can also [explore the API](https://herc-server.herokuapp.com/) via GraphQL Playground.
 
-The client is an Elm SPA. I'm using Webpack to build it and serve up a hot-reloading dev mode, and Apollo Client for GraphQL subscriptions over WebSockets.
+## herc client
 
-## Server
+[herc client](client) is an Elm single page app. I'm using Webpack to build it and serve up a hot-reloading dev mode, and Apollo Client for GraphQL subscriptions over WebSockets. Please see [the client readme](client/README.md) for more details and installation instructions.
 
-The server is written in Haskell. I'm using `yesod` as the web framework, and `Morpheus` for GraphQL support.
+## herc server
 
-## Installing
+[herc server](server) is written in Haskell. I'm using `yesod` as the web framework, and `Morpheus` for GraphQL support. Please see [the server readme](server/README.md) for more details and installation instructions.
 
-The frontend can be run in dev mode with `cd client && npm run dev`, or built with the usual `npm run build`.
+## Deployment
 
-The server can be run in dev mode with `cd server && stack exec -- yesod devel`, or built with the usual `stack build`.
+Both parts of the app are deployed via CI/CD pipline. The server goes to CircleCI and from there to Heroku, and the client goes direct to Netlify.
