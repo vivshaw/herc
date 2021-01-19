@@ -21,7 +21,7 @@ import Types exposing (..)
 endpoint : String
 endpoint =
     -- FIXME: pull from .env or something
-    "https://herc-server.herokuapp.com/graphql"
+    "https://herc-server.herokuapp.com/"
 
 
 {-| The sole SelectionSet.

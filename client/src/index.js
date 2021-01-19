@@ -17,7 +17,7 @@ import "./styles/styles.css";
 const getClient = () => {
   // Create an http link:
   const httpLink = new HttpLink({
-    uri: `https://herc-server.herokuapp.com/graphql`,
+    uri: `https://herc-server.herokuapp.com/`,
   });
 
   // Create a WebSocket link:
