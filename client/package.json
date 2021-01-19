@@ -45,13 +45,13 @@
   },
   "scripts": {
     "build": "export NODE_ENV=production && webpack --mode production",
-    "dev": "webpack-dev-server --hot --colors --port 3000",
+    "dev": "webpack-dev-server --hot --colors --port 3001",
     "make": "elm make",
     "repl": "elm repl",
     "reactor": "elm reactor",
     "test": "elm-test",
     "generate-elm-types": "elm-graphql https://herc-server.herokuapp.com/graphql --base ChatAPI",
-    "analyse": "elm-analyse -s -p 3001 -o"
+    "analyse": "elm-analyse -s -p 3002 -o"
   },
   "author": "vivshaw",
   "license": "MIT"
