@@ -14,11 +14,13 @@ import Url
 
 
 
-{- State lives here! `init`, `update`, and `subscription` are all handled here.
-   See `Types.elm` for documentation on the Model and Msgs.
+{- State lives here! `init`, `update`, and `subscription` are all handled here,
+   as are Ports. See `Types.elm` for documentation on the Model and Msgs.
 -}
 
 
+{-| TEA Init
+-}
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     ( { name = "Anonymous User"
@@ -30,13 +32,20 @@ init _ url key =
       , route = Route.parseUrl url
       }
     , Cmd.batch
+        -- On init, load chat messages...
         [ makeRequest
+
+        -- connect to WebSockets...
         , createSubscriptionToMessages (subscriptionDocument |> Document.serializeSubscription)
+
+        -- and pick a random UUID for the session.
         , Random.generate SeedResult UUID.generator
         ]
     )
 
 
+{-| TEA Update
+-}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -105,6 +114,20 @@ update msg model =
             )
 
 
+{-| TEA Subscriptions
+-}
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ gotMessageSubscriptionData MessageSubscriptionDataReceived
+        , socketStatusConnected (NewSubscriptionStatus Connected)
+        ]
+
+
+
+-- Ports
+
+
 {-| Calls into JS to open a WebSockets port with Apollo Client. Called in `init`.
 -}
 port createSubscriptionToMessages : String -> Cmd msg
@@ -118,11 +141,3 @@ port socketStatusConnected : (() -> msg) -> Sub msg
 {-| Subscription that is called every time the GraphQL Subscription recieves data.
 -}
 port gotMessageSubscriptionData : (Json.Decode.Value -> msg) -> Sub msg
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.batch
-        [ gotMessageSubscriptionData MessageSubscriptionDataReceived
-        , socketStatusConnected (NewSubscriptionStatus Connected)
-        ]
