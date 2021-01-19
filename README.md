@@ -1,4 +1,5 @@
 # herc (Haskell & Elm Rudimentary Chat) 💪
+[![vivshaw](https://circleci.com/gh/vivshaw/herc.svg?style=svg)](https://app.circleci.com/pipelines/github/vivshaw/herc) [![Netlify Status](https://api.netlify.com/api/v1/badges/255214e1-1eee-453a-b52d-6f73c6c7b182/deploy-status)](https://app.netlify.com/sites/herc-chat/deploys) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
 [herc](https://herc-chat.netlify.app/) is a learning project for getting up to speed with Elm! It is a real-time chat app with Elm frontend and Haskell backend, using GraphQL to enjoy type-safety throughout the stack. 👍
 
