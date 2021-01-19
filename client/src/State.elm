@@ -1,8 +1,8 @@
 port module State exposing (..)
 
-import Api exposing (..)
 import Browser
 import Browser.Navigation as Nav
+import Graphql exposing (..)
 import Graphql.Document as Document
 import Json.Decode
 import Random
@@ -33,7 +33,7 @@ init _ url key =
       }
     , Cmd.batch
         -- On init, load chat messages...
-        [ makeRequest
+        [ doQuery messagesQuery
 
         -- connect to WebSockets...
         , createSubscriptionToMessages (subscriptionDocument |> Document.serializeSubscription)
@@ -64,7 +64,7 @@ update msg model =
         SendMessage message ->
             -- Fire off the mutation and clear the content!
             ( { model | currentContent = "" }
-            , doMutation (sendChatMessage message)
+            , doMutation (sendMessageMutation message)
             )
 
         MessageSent _ ->
